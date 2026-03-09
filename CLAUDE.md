@@ -3,10 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-09
 
 ## Active Technologies
-- Python 3.12 + PyInstaller (build tool), pyinstaller-hooks-contrib (community hooks) (002-windows-exe-packaging)
-- N/A (build/packaging feature) (002-windows-exe-packaging)
-
-- Python 3.10+ + kinter (GUI, stdlib), pyautogui (mouse/keyboard (001-excel-automation-builder)
+- Python 3.10+ + tkinter (GUI, stdlib), pyautogui (mouse/keyboard) (001-excel-automation-builder)
 
 ## Project Structure
 
@@ -24,9 +21,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
-- 002-windows-exe-packaging: Added Python 3.12 + PyInstaller (build tool), pyinstaller-hooks-contrib (community hooks)
-
-- 001-excel-automation-builder: Added Python 3.10+ + kinter (GUI, stdlib), pyautogui (mouse/keyboard
+- 001-excel-automation-builder: Added Python 3.10+ + tkinter (GUI, stdlib), pyautogui (mouse/keyboard)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
