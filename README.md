@@ -3,18 +3,13 @@ To automate clicks, drag, writing, reading from excel
 
 ## For End Users: Running the Portable Windows Application
 
-### How to Get the App
-
-Get the `AutomationMouseKeyboard` folder from the person who shared it with you (via USB, download link, email, etc.).
-
 ### Running the App
 
-1. Extract the zip file if needed (right-click → "Extract All...")
-2. Open the `AutomationMouseKeyboard` folder
-3. Double-click `AutomationMouseKeyboard.exe`
-4. The application will launch within a few seconds
+1. Open the `AutomationMouseKeyboard` folder you received
+2. Double-click `AutomationMouseKeyboard.exe` to launch the app
+3. That's it — no installation needed
 
-**Important:** Keep all files in the `AutomationMouseKeyboard` folder together. Moving just the `.exe` file out of the folder will break the application.
+**Important:** Do not move `AutomationMouseKeyboard.exe` out of its folder. It needs the other files next to it to work.
 
 ### System Requirements
 
