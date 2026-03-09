@@ -17,7 +17,7 @@ class App:
             root: The tkinter root window
         """
         self.root = root
-        self.root.title("Excel Automation Workflow Builder")
+        self.root.title("Automation Mouse & Keyboard v1.0")
         self.root.geometry("1000x800")
         
         # Create menu bar

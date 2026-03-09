@@ -1,0 +1,5 @@
+# Build-only dependencies for creating the portable Windows executable
+# These are not needed at runtime - only for building the package
+
+pyinstaller>=6.0.0
+pyinstaller-hooks-contrib>=2024.0

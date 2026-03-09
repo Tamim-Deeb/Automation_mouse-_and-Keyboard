@@ -1,13 +1,52 @@
 """Main application entry point - wires all panels together"""
+import sys
+import os
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
+from typing import Optional
 from src.workflow.models import Workflow, ExecutionSession, ExcelDataSource
 from src.gui.app import App
 from src.gui.excel_panel import ExcelPanel
 from src.gui.workflow_panel import WorkflowPanel
 from src.gui.execution_panel import ExecutionPanel
 from src.workflow.serializer import WorkflowSerializer
+
+
+def is_frozen() -> bool:
+    """
+    Check if the application is running as a frozen PyInstaller bundle.
+    
+    Returns:
+        True if running as a frozen executable, False otherwise
+    """
+    return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+
+
+def get_resource_path(relative_path: str) -> str:
+    """
+    Get absolute path to a resource, handling both frozen and normal execution.
+    
+    When running as a frozen PyInstaller bundle, resources are extracted to
+    sys._MEIPASS. In normal execution, paths are relative to the script.
+    
+    Args:
+        relative_path: Path relative to the resource root (e.g., 'assets/app.ico')
+    
+    Returns:
+        Absolute path to the resource
+    """
+    if is_frozen():
+        # Running in PyInstaller bundle
+        base_path = sys._MEIPASS
+    else:
+        # Running in normal Python environment
+        # Get the directory containing this script
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        # Go up one level to get to the project root
+        base_path = os.path.dirname(base_path)
+    
+    return os.path.join(base_path, relative_path)
 
 
 class MainApp:
@@ -268,9 +307,55 @@ class MainApp:
 
 def main():
     """Entry point for the application"""
-    root = tk.Tk()
-    app = MainApp(root)
-    root.mainloop()
+    try:
+        root = tk.Tk()
+        app = MainApp(root)
+        root.mainloop()
+    except Exception as e:
+        # Handle any startup errors
+        show_startup_error(e)
+        raise
+
+
+def show_startup_error(error: Exception) -> None:
+    """
+    Display a user-friendly error dialog when the app fails to start.
+    
+    This is especially important when running as a frozen executable
+    with no console window, as errors would otherwise be silent.
+    
+    Args:
+        error: The exception that occurred during startup
+    """
+    try:
+        # Create a hidden root window for the messagebox
+        error_root = tk.Tk()
+        error_root.withdraw()  # Hide the main window
+        
+        # Build user-friendly error message
+        error_type = type(error).__name__
+        error_msg = str(error)
+        
+        # Create detailed message
+        message = f"Failed to start the application.\n\n"
+        message += f"Error: {error_type}\n"
+        message += f"Details: {error_msg}\n\n"
+        message += "Please ensure you have the required permissions and try again."
+        
+        # Show error dialog
+        messagebox.showerror(
+            title="Startup Error",
+            message=message,
+            parent=error_root
+        )
+        
+        # Clean up
+        error_root.destroy()
+    except Exception:
+        # If we can't even show the error dialog, at least print to stderr
+        import traceback
+        print("CRITICAL: Failed to start application and show error dialog", file=sys.stderr)
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
