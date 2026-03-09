@@ -3,23 +3,18 @@ To automate clicks, drag, writing, reading from excel
 
 ## For End Users: Running the Portable Windows Application
 
-### Download and Installation
+### How to Get the App
 
-1. **Download the application**
-   - Go to the [Releases page](../../releases)
-   - Download the latest `AutomationBuilder-windows.zip` file
+Get the `AutomationMouseKeyboard` folder from the person who shared it with you (via USB, download link, email, etc.).
 
-2. **Extract the zip file**
-   - Right-click the downloaded zip file
-   - Select "Extract All..." (Windows)
-   - Choose a location to extract the folder
+### Running the App
 
-3. **Run the application**
-   - Open the extracted `AutomationBuilder` folder
-   - Double-click `AutomationBuilder.exe`
-   - The application will launch within a few seconds
+1. Extract the zip file if needed (right-click → "Extract All...")
+2. Open the `AutomationMouseKeyboard` folder
+3. Double-click `AutomationMouseKeyboard.exe`
+4. The application will launch within a few seconds
 
-**Important:** Keep all files in the `AutomationBuilder` folder together. Moving just the `.exe` file out of the folder will break the application.
+**Important:** Keep all files in the `AutomationMouseKeyboard` folder together. Moving just the `.exe` file out of the folder will break the application.
 
 ### System Requirements
 
@@ -32,7 +27,7 @@ To automate clicks, drag, writing, reading from excel
 | Issue | Solution |
 |-------|----------|
 | SmartScreen blocks the exe | Click "More info" → "Run anyway" |
-| Antivirus flags the exe | Add an exception for the AutomationBuilder folder |
+| Antivirus flags the exe | Add an exception for the AutomationMouseKeyboard folder |
 | App doesn't start | Ensure Windows version is 10 or later |
 | "Failed to execute script" error | Run from command prompt to see error details |
 | Exe doesn't work after moving | Keep all files in the folder together |
