@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Automation Workflow File",
+  "description": "Schema for saved workflow files (.json) used by the Excel-Driven Desktop Automation Workflow Builder.",
+  "type": "object",
+  "required": ["name", "steps", "created_at", "updated_at"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "User-provided workflow name."
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered list of workflow steps.",
+      "items": {
+        "type": "object",
+        "required": ["type", "params"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "click",
+              "double_click",
+              "type_text",
+              "wait",
+              "insert_column_value",
+              "press_hotkey"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "description": "Type-specific parameters."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": { "type": { "const": "click" } }
+            },
+            "then": {
+              "properties": {
+                "params": {
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": { "type": "integer", "minimum": 0 },
+                    "y": { "type": "integer", "minimum": 0 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": { "type": { "const": "double_click" } }
+            },
+            "then": {
+              "properties": {
+                "params": {
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": { "type": "integer", "minimum": 0 },
+                    "y": { "type": "integer", "minimum": 0 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": { "type": { "const": "type_text" } }
+            },
+            "then": {
+              "properties": {
+                "params": {
+                  "required": ["text"],
+                  "properties": {
+                    "text": { "type": "string", "minLength": 1 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": { "type": { "const": "wait" } }
+            },
+            "then": {
+              "properties": {
+                "params": {
+                  "required": ["duration_ms"],
+                  "properties": {
+                    "duration_ms": { "type": "integer", "minimum": 50 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": { "type": { "const": "insert_column_value" } }
+            },
+            "then": {
+              "properties": {
+                "params": {
+                  "required": ["column_name"],
+                  "properties": {
+                    "column_name": { "type": "string", "minLength": 1 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": { "type": { "const": "press_hotkey" } }
+            },
+            "then": {
+              "properties": {
+                "params": {
+                  "required": ["hotkey"],
+                  "properties": {
+                    "hotkey": {
+                      "type": "string",
+                      "enum": [
+                        "Enter",
+                        "Backspace",
+                        "Tab",
+                        "Shift+Tab",
+                        "Ctrl+A",
+                        "Ctrl+C",
+                        "Ctrl+V"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of first save."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last save."
+    }
+  },
+  "additionalProperties": false
+}
