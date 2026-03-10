@@ -23,8 +23,14 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-build.txt
 
-      - name: Create icon
-        run: python create_icon.py
+      - name: Create icon (if missing)
+        run: |
+          if (!(Test-Path "assets/app.ico")) {
+            pip install Pillow
+            python create_icon.py
+          } else {
+            Write-Output "Icon already exists, skipping"
+          }
 
       - name: Build portable app
         run: python build.py
