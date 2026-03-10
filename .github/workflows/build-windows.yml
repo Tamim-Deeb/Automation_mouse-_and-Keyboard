@@ -1,0 +1,37 @@
+name: Build Windows App
+
+on:
+  push:
+    branches: [main, 003-portable-app]
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-build.txt
+
+      - name: Create icon
+        run: python create_icon.py
+
+      - name: Build portable app
+        run: python build.py
+
+      - name: Upload portable app
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutomationMouseKeyboard-Windows
+          path: dist/AutomationMouseKeyboard/
+          retention-days: 90

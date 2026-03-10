@@ -51,8 +51,8 @@ Thumbs.db
 htmlcov/
 .pytest_cache/
 
-# PyInstaller
-*.spec
+# PyInstaller (keep AutomationMouseKeyboard.spec - it's our build config)
+!AutomationMouseKeyboard.spec
 
 # Temporary files
 *.tmp
