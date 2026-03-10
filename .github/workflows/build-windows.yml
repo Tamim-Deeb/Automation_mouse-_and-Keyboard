@@ -2,8 +2,11 @@ name: Build Windows App
 
 on:
   push:
-    branches: [main, 003-portable-app]
+    branches: [main]
   workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -35,9 +38,19 @@ jobs:
       - name: Build portable app
         run: python build.py
 
-      - name: Upload portable app
-        uses: actions/upload-artifact@v4
+      - name: Zip the app folder
+        run: Compress-Archive -Path dist/AutomationMouseKeyboard/* -DestinationPath AutomationMouseKeyboard-Windows.zip
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
         with:
-          name: AutomationMouseKeyboard-Windows
-          path: dist/AutomationMouseKeyboard/
-          retention-days: 90
+          tag_name: latest
+          name: Automation Mouse & Keyboard (Latest Build)
+          body: |
+            Download **AutomationMouseKeyboard-Windows.zip**, extract it, and double-click **AutomationMouseKeyboard.exe** to run.
+
+            No installation needed. Windows 10 or later required.
+
+            If Windows shows a "Windows protected your PC" warning, click **More info** then **Run anyway**.
+          files: AutomationMouseKeyboard-Windows.zip
+          make_latest: true
