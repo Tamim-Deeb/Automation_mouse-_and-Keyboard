@@ -39,7 +39,7 @@ jobs:
         run: python build.py
 
       - name: Zip the app folder
-        run: Compress-Archive -Path dist/AutomationMouseKeyboard/* -DestinationPath AutomationMouseKeyboard-Windows.zip
+        run: Compress-Archive -Path dist/AutomationMouseKeyboard -DestinationPath AutomationMouseKeyboard-Windows.zip
 
       - name: Create or update release
         uses: softprops/action-gh-release@v2
