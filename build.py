@@ -31,32 +31,32 @@ def check_prerequisites():
     
     # Check if spec file exists
     if not os.path.exists(SPEC_FILE):
-        print(f"✗ ERROR: Spec file '{SPEC_FILE}' not found!")
+        print(f"[FAIL] ERROR: Spec file '{SPEC_FILE}' not found!")
         return False
     
     # Check if icon exists
     icon_path = 'assets/app.ico'
     if not os.path.exists(icon_path):
-        print(f"✗ ERROR: Icon file '{icon_path}' not found!")
+        print(f"[FAIL] ERROR: Icon file '{icon_path}' not found!")
         print("  Run 'python create_icon.py' to create it.")
         return False
     
     # Check if PyInstaller is installed
     try:
         import PyInstaller
-        print(f"✓ PyInstaller {PyInstaller.__version__} found")
+        print(f"[OK] PyInstaller {PyInstaller.__version__} found")
     except ImportError:
-        print("✗ ERROR: PyInstaller not installed!")
+        print("[FAIL] ERROR: PyInstaller not installed!")
         print("  Run: pip install -r requirements-build.txt")
         return False
     
     # Check if entry point exists
     entry_point = 'src/main.py'
     if not os.path.exists(entry_point):
-        print(f"✗ ERROR: Entry point '{entry_point}' not found!")
+        print(f"[FAIL] ERROR: Entry point '{entry_point}' not found!")
         return False
     
-    print("✓ All prerequisites met")
+    print("[OK] All prerequisites met")
     return True
 
 
@@ -71,7 +71,7 @@ def clean_build():
             print(f"  Removing {dir_path}/...")
             shutil.rmtree(dir_path)
     
-    print("✓ Build directories cleaned")
+    print("[OK] Build directories cleaned")
 
 
 def run_pyinstaller():
@@ -90,14 +90,14 @@ def run_pyinstaller():
             text=True
         )
         
-        print("✓ PyInstaller completed successfully")
+        print("[OK] PyInstaller completed successfully")
         return True
         
     except subprocess.CalledProcessError as e:
-        print(f"✗ ERROR: PyInstaller failed with exit code {e.returncode}")
+        print(f"[FAIL] ERROR: PyInstaller failed with exit code {e.returncode}")
         return False
     except Exception as e:
-        print(f"✗ ERROR: Unexpected error running PyInstaller: {e}")
+        print(f"[FAIL] ERROR: Unexpected error running PyInstaller: {e}")
         return False
 
 
@@ -109,42 +109,42 @@ def validate_build():
     
     # Check if output directory exists
     if not os.path.exists(OUTPUT_DIR):
-        print(f"✗ ERROR: Output directory '{OUTPUT_DIR}' not found!")
+        print(f"[FAIL] ERROR: Output directory '{OUTPUT_DIR}' not found!")
         return False
     
     # Check if app directory exists
     app_dir = os.path.join(OUTPUT_DIR, APP_NAME)
     if not os.path.exists(app_dir):
-        print(f"✗ ERROR: App directory '{app_dir}' not found!")
+        print(f"[FAIL] ERROR: App directory '{app_dir}' not found!")
         return False
     
-    print(f"✓ App directory exists: {app_dir}")
+    print(f"[OK] App directory exists: {app_dir}")
     
     # Check if executable exists
     if not os.path.exists(EXPECTED_EXE):
-        print(f"✗ ERROR: Executable '{EXPECTED_EXE}' not found!")
+        print(f"[FAIL] ERROR: Executable '{EXPECTED_EXE}' not found!")
         success = False
     else:
         exe_size = os.path.getsize(EXPECTED_EXE)
-        print(f"✓ Executable found: {EXPECTED_EXE} ({exe_size:,} bytes)")
+        print(f"[OK] Executable found: {EXPECTED_EXE} ({exe_size:,} bytes)")
     
     # Check if _internal directory exists
     if not os.path.exists(EXPECTED_INTERNAL):
-        print(f"✗ ERROR: Internal directory '{EXPECTED_INTERNAL}' not found!")
+        print(f"[FAIL] ERROR: Internal directory '{EXPECTED_INTERNAL}' not found!")
         success = False
     else:
         # Count items in _internal directory
         internal_items = os.listdir(EXPECTED_INTERNAL)
-        print(f"✓ Internal directory found: {EXPECTED_INTERNAL} ({len(internal_items)} items)")
+        print(f"[OK] Internal directory found: {EXPECTED_INTERNAL} ({len(internal_items)} items)")
     
     # Check for critical DLLs
     critical_dlls = ['python3', 'tkinter']
     for dll_name in critical_dlls:
         found = any(dll_name.lower() in item.lower() for item in internal_items)
         if found:
-            print(f"✓ Critical dependency found: {dll_name}")
+            print(f"[OK] Critical dependency found: {dll_name}")
         else:
-            print(f"⚠ WARNING: Critical dependency may be missing: {dll_name}")
+            print(f"[WARN] WARNING: Critical dependency may be missing: {dll_name}")
     
     return success
 
@@ -154,7 +154,7 @@ def print_summary(success):
     print_step("Build Summary")
     
     if success:
-        print("✓ BUILD SUCCESSFUL!")
+        print("[OK] BUILD SUCCESSFUL!")
         print(f"\n  Portable app created at: {os.path.join(OUTPUT_DIR, APP_NAME)}")
         print(f"  Executable: {EXPECTED_EXE}")
         print(f"\n  To distribute:")
@@ -163,7 +163,7 @@ def print_summary(success):
         print(f"    3. Users extract and double-click '{APP_NAME}.exe'")
         return 0
     else:
-        print("✗ BUILD FAILED!")
+        print("[FAIL] BUILD FAILED!")
         print("\n  Please check the error messages above and fix any issues.")
         print("  Common issues:")
         print("    - Missing dependencies (run: pip install -r requirements-build.txt)")
