@@ -1,10 +1,13 @@
 """Workflow execution engine"""
-from typing import Optional, Callable
+from typing import Optional, Callable, TYPE_CHECKING
 from datetime import datetime
 from src.workflow.models import Workflow, WorkflowStep, ExecutionSession, ExcelDataSource, LogEntry, StepType
 from src.engine.step_registry import get_step_handler
 from src.excel.reader import ExcelReader
 from src.action_logging.action_logger import ActionLogger
+
+if TYPE_CHECKING:
+    from src.engine.kill_switch import KillSwitch
 
 
 class WorkflowExecutor:

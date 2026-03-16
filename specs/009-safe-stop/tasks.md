@@ -25,8 +25,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T001 [P] Add `interruptible_sleep(duration_ms, stop_event)` method to `WaitModule` in `src/automation/wait.py` — uses `threading.Event.wait(timeout)` instead of `time.sleep()`, returns `True` if interrupted, enforces 50ms minimum delay
-- [ ] T002 [P] Add optional `kill_switch` parameter to `WorkflowExecutor.__init__()` in `src/engine/executor.py` — store as `self.kill_switch`, default `None` for backward compatibility
+- [x] T001 [P] Add `interruptible_sleep(duration_ms, stop_event)` method to `WaitModule` in `src/automation/wait.py` — uses `threading.Event.wait(timeout)` instead of `time.sleep()`, returns `True` if interrupted, enforces 50ms minimum delay
+- [x] T002 [P] Add optional `kill_switch` parameter to `WorkflowExecutor.__init__()` in `src/engine/executor.py` — store as `self.kill_switch`, default `None` for backward compatibility
 
 **Checkpoint**: Foundation ready — executor accepts kill switch, wait module supports interruptible sleep
 
@@ -40,11 +40,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Add kill-switch check in `WorkflowExecutor.execute()` row loop in `src/engine/executor.py` — after processing each row, check `self.kill_switch.is_triggered()` and call `self.session.stop()` if true
-- [ ] T004 [US1] Add kill-switch check in `WorkflowExecutor.execute()` step loop in `src/engine/executor.py` — before each `_execute_step()` call, check `self.kill_switch.is_triggered()` and break if true
-- [ ] T005 [US1] Update wait step handling in `WorkflowExecutor._execute_step()` in `src/engine/executor.py` — when step type is WAIT and kill_switch is provided, use `kill_switch.wait_for_trigger(timeout)` to sleep interruptibly instead of `WaitModule.sleep()`; if triggered, call `self.session.stop()`
-- [ ] T006 [US1] Pass `kill_switch` from `ExecutionPanel` to `WorkflowExecutor` constructor in `src/gui/execution_panel.py` — update the `WorkflowExecutor(...)` call in `_on_start()` to include `kill_switch=self.kill_switch`
-- [ ] T007 [US1] Add kill-switch polling in `ExecutionPanel` in `src/gui/execution_panel.py` — add `_poll_kill_switch()` method that checks `kill_switch.is_triggered()` every 200ms using `self.parent.after()`, and calls `self.executor.stop()` when triggered; start polling in `_on_start()`, stop in `_update_complete()`
+- [x] T003 [US1] Add kill-switch check in `WorkflowExecutor.execute()` row loop in `src/engine/executor.py` — after processing each row, check `self.kill_switch.is_triggered()` and call `self.session.stop()` if true
+- [x] T004 [US1] Add kill-switch check in `WorkflowExecutor.execute()` step loop in `src/engine/executor.py` — before each `_execute_step()` call, check `self.kill_switch.is_triggered()` and break if true
+- [x] T005 [US1] Update wait step handling in `WorkflowExecutor._execute_step()` in `src/engine/executor.py` — when step type is WAIT and kill_switch is provided, use `WaitModule.interruptible_sleep(duration, kill_switch.event)` instead of `WaitModule.sleep()`; if interrupted (returns True), call `self.session.stop()`
+- [x] T006 [US1] Pass `kill_switch` from `ExecutionPanel` to `WorkflowExecutor` constructor in `src/gui/execution_panel.py` — update the `WorkflowExecutor(...)` call in `_on_start()` to include `kill_switch=self.kill_switch`
+- [x] T007 [US1] Add kill-switch polling in `ExecutionPanel` in `src/gui/execution_panel.py` — add `_poll_kill_switch()` method that checks `kill_switch.is_triggered()` every 200ms using `self.parent.after()`, and calls `self.executor.stop()` when triggered; start polling in `_on_start()`, stop in `_update_complete()`
 
 **Checkpoint**: At this point, pressing Esc during execution stops the workflow within 1 second, including during long waits
 
@@ -58,8 +58,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Update `_update_complete()` in `src/gui/execution_panel.py` — differentiate between Esc-triggered stop and normal stop button; when kill switch is triggered, show "Stopped by Esc at row X of Y" in the completion dialog instead of generic stop message
-- [ ] T009 [US2] Ensure `_poll_kill_switch()` in `src/gui/execution_panel.py` updates the progress label immediately when Esc is detected — set `progress_label` text to "Stopping..." before waiting for executor to finish
+- [x] T008 [US2] Update `_update_complete()` in `src/gui/execution_panel.py` — differentiate between Esc-triggered stop and normal stop button; when kill switch is triggered, show "Stopped by Esc at row X of Y" in the completion dialog instead of generic stop message
+- [x] T009 [US2] Ensure `_poll_kill_switch()` in `src/gui/execution_panel.py` updates the progress label immediately when Esc is detected — set `progress_label` text to "Stopping..." before waiting for executor to finish
 
 **Checkpoint**: User sees clear feedback distinguishing Esc stop from button stop, with correct row information
 
@@ -69,9 +69,9 @@
 
 **Purpose**: Edge cases and cleanup
 
-- [ ] T010 Ensure kill switch listener is cleanly released on all exit paths (FR-006) in `src/gui/execution_panel.py` — verify `kill_switch.start()` is called only in `_on_start()` and `kill_switch.stop()` is called in `_update_complete()`, `reset()`, and after errors; confirm Esc has no effect when idle (FR-007)
-- [ ] T011 Handle rapid multiple Esc presses in `src/engine/executor.py` — verify that `is_triggered()` check is idempotent and multiple triggers don't cause double-stop or errors
-- [ ] T012 Run quickstart.md validation — manually test the full flow described in `specs/009-safe-stop/quickstart.md`
+- [x] T010 Ensure kill switch listener is cleanly released on all exit paths (FR-006) in `src/gui/execution_panel.py` — verify `kill_switch.start()` is called only in `_on_start()` and `kill_switch.stop()` is called in `_update_complete()`, `reset()`, and after errors; confirm Esc has no effect when idle (FR-007)
+- [x] T011 Handle rapid multiple Esc presses in `src/engine/executor.py` — verify that `is_triggered()` check is idempotent and multiple triggers don't cause double-stop or errors
+- [x] T012 Run quickstart.md validation — manually test the full flow described in `specs/009-safe-stop/quickstart.md`
 
 ---
 
