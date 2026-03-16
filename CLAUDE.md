@@ -6,6 +6,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-09
 - Python 3.10+ + tkinter (GUI, stdlib), pyautogui (mouse/keyboard) (001-excel-automation-builder)
 - Python 3.10+ (existing), Python 3.12 recommended for build + PyInstaller 6.0+ (build tool), pyinstaller-hooks-contrib (community hooks) (003-portable-app)
 - N/A (packaging feature, no new storage) (003-portable-app)
+- Python 3.10+ + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel) (009-safe-stop)
+- N/A (no new storage) (009-safe-stop)
 
 ## Project Structure
 
@@ -23,6 +25,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 009-safe-stop: Added Python 3.10+ + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel)
 - 003-portable-app: Added Python 3.10+ (existing), Python 3.12 recommended for build + PyInstaller 6.0+ (build tool), pyinstaller-hooks-contrib (community hooks)
 - 001-excel-automation-builder: Added Python 3.10+ + tkinter (GUI, stdlib), pyautogui (mouse/keyboard)
 

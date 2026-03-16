@@ -123,21 +123,25 @@ class ExecutionPanel:
         # Create logger
         self.logger = ActionLogger()
         
-        # Create executor
+        # Create and start kill-switch
+        self.kill_switch = KillSwitch()
+        self.kill_switch.start()
+        
+        # Create executor with kill_switch
         self.executor = WorkflowExecutor(
             session=self.session,
             logger=self.logger,
             on_progress=self._on_progress,
-            on_complete=self._on_complete
+            on_complete=self._on_complete,
+            kill_switch=self.kill_switch
         )
-        
-        # Start kill-switch
-        self.kill_switch = KillSwitch()
-        self.kill_switch.start()
         
         # Run executor in background thread
         self.execution_thread = threading.Thread(target=self.executor.execute, daemon=True)
         self.execution_thread.start()
+        
+        # Start kill-switch polling
+        self._poll_kill_switch()
         
         # Update UI
         self._set_running_state(True)
@@ -157,6 +161,19 @@ class ExecutionPanel:
             text=f"Row {current_row} of {total_rows}"
         ))
     
+    def _poll_kill_switch(self) -> None:
+        """Poll the kill switch for Esc key presses"""
+        if self.kill_switch and self.kill_switch.is_triggered():
+            # Kill switch triggered - update progress label and stop execution
+            self.progress_label.config(text="Stopping...")
+            if self.executor:
+                self.executor.stop()
+            return
+        
+        # Schedule next poll (200ms)
+        if self.executor and self.executor.is_running():
+            self.parent.after(200, self._poll_kill_switch)
+    
     def _on_complete(self, status_message: str) -> None:
         """Handle execution completion"""
         # Update UI (must be thread-safe)
@@ -164,7 +181,22 @@ class ExecutionPanel:
     
     def _update_complete(self, status_message: str) -> None:
         """Update UI after completion"""
-        self.progress_label.config(text=status_message)
+        # Check if stopped by Esc key
+        was_stopped_by_esc = self.kill_switch and self.kill_switch.is_triggered()
+        
+        # Update progress label with appropriate message
+        if was_stopped_by_esc:
+            # Show "Stopped by Esc" message with row information
+            if self.session:
+                current_row = self.session.current_row
+                total_rows = self.session.data_source.row_count if self.session.data_source else 0
+                display_message = f"Stopped by Esc at row {current_row} of {total_rows}"
+            else:
+                display_message = "Stopped by Esc"
+        else:
+            display_message = status_message
+        
+        self.progress_label.config(text=display_message)
         self._set_running_state(False)
         
         # Stop kill-switch
@@ -174,14 +206,14 @@ class ExecutionPanel:
         
         # Notify callback
         if self.on_execution_complete:
-            self.on_execution_complete(status_message)
+            self.on_execution_complete(display_message)
         
         # Show log file location
         if self.logger:
             log_file = self.logger.get_log_file_path()
             messagebox.showinfo(
                 "Execution Complete",
-                f"{status_message}\n\nLog file: {log_file}"
+                f"{display_message}\n\nLog file: {log_file}"
             )
     
     def _set_running_state(self, running: bool) -> None:

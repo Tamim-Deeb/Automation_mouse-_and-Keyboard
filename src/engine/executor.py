@@ -18,7 +18,8 @@ class WorkflowExecutor:
         session: ExecutionSession,
         logger: Optional[ActionLogger] = None,
         on_progress: Optional[Callable[[int, int], None]] = None,
-        on_complete: Optional[Callable[[str], None]] = None
+        on_complete: Optional[Callable[[str], None]] = None,
+        kill_switch: Optional['KillSwitch'] = None
     ):
         """
         Initialize the workflow executor.
@@ -28,11 +29,13 @@ class WorkflowExecutor:
             logger: Optional action logger for recording actions
             on_progress: Callback for progress updates (current_row, total_rows)
             on_complete: Callback for completion (status message)
+            kill_switch: Optional kill switch for safe stop functionality
         """
         self.session = session
         self.logger = logger
         self.on_progress = on_progress
         self.on_complete = on_complete
+        self.kill_switch = kill_switch
         
         self._is_running = False
     
@@ -65,16 +68,31 @@ class WorkflowExecutor:
                     if self.session.status != "running":
                         break
                     
+                    # Check kill-switch between rows
+                    if self.kill_switch and self.kill_switch.is_triggered():
+                        self.session.stop()
+                        break
+                    
                     # Update current row
                     self.session.current_row = row_number
                     
                     # Execute each step for this row
                     for step in self.session.workflow.steps:
                         # Check kill-switch between steps
+                        if self.kill_switch and self.kill_switch.is_triggered():
+                            self.session.stop()
+                            break
+                        
+                        # Check if stopped
                         if self.session.status != "running":
                             break
                         
                         self._execute_step(step, row_data, row_number)
+                    
+                    # Check kill-switch after processing row
+                    if self.kill_switch and self.kill_switch.is_triggered():
+                        self.session.stop()
+                        break
                     
                     # Notify progress
                     if self.on_progress:
@@ -132,8 +150,16 @@ class WorkflowExecutor:
         # Execute step (unless dry-run)
         if not self.session.dry_run:
             try:
+                # Special handling for WAIT steps with kill switch
+                if step.type == StepType.WAIT and self.kill_switch:
+                    duration_ms = step.params.get("duration_ms", 0)
+                    # Use kill switch wait_for_trigger for interruptible sleep
+                    timeout_seconds = max(duration_ms, 50) / 1000.0  # Enforce 50ms minimum
+                    was_triggered = self.kill_switch.wait_for_trigger(timeout=timeout_seconds)
+                    if was_triggered:
+                        self.session.stop()
                 # Handle empty cells for insert_column_value
-                if step.type == StepType.INSERT_COLUMN_VALUE:
+                elif step.type == StepType.INSERT_COLUMN_VALUE:
                     column_name = step.params.get("column_name", "")
                     value = row_data.get(column_name, "")
                     # Use empty string for blank cells
