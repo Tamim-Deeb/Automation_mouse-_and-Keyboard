@@ -71,9 +71,12 @@ class CoordinatePicker:
         # Key bindings
         self._window.bind('<Return>', lambda e: self._capture())
         self._window.bind('<Escape>', lambda e: self._cancel())
+
+        # Grab all keyboard input so Enter/Esc work even when mouse is elsewhere
+        self._window.grab_set_global()
         self._window.focus_force()
 
-        # Start polling mouse position
+        # Start polling mouse position and maintaining focus
         self._poll_mouse()
 
     def _poll_mouse(self) -> None:
@@ -83,6 +86,8 @@ class CoordinatePicker:
         try:
             x, y = pyautogui.position()
             self._coord_label.config(text=f"X: {x}   Y: {y}")
+            # Re-focus periodically so Windows doesn't steal keyboard input
+            self._window.focus_force()
             self._polling_id = self._window.after(50, self._poll_mouse)
         except Exception:
             pass
@@ -110,6 +115,10 @@ class CoordinatePicker:
             self._window.after_cancel(self._polling_id)
             self._polling_id = None
         if self._window:
+            try:
+                self._window.grab_release()
+            except tk.TclError:
+                pass
             try:
                 self._window.destroy()
             except tk.TclError:
