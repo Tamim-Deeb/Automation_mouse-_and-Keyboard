@@ -1,98 +1,120 @@
-"""Coordinate picker overlay for capturing screen coordinates"""
+"""Coordinate picker for capturing screen coordinates"""
 import tkinter as tk
 from typing import Optional, Callable
+import pyautogui
 
 
 class CoordinatePicker:
     """
-    Transparent fullscreen overlay for capturing screen coordinates.
-    User clicks anywhere on screen to capture coordinates.
+    Lightweight coordinate picker.
+    Shows a small floating window — user moves mouse to desired position
+    and presses Enter (or clicks the Capture button) to grab coordinates.
     Press Esc to cancel.
     """
-    
+
     def __init__(self, parent: tk.Tk, on_coords_captured: Callable[[int, int], None]):
-        """
-        Initialize the coordinate picker.
-        
-        Args:
-            parent: Parent window
-            on_coords_captured: Callback when coordinates are captured (receives x, y)
-        """
         self.parent = parent
         self.on_coords_captured = on_coords_captured
-        
-        self.overlay: Optional[tk.Toplevel] = None
+
+        self._window: Optional[tk.Toplevel] = None
+        self._coord_label: Optional[tk.Label] = None
         self.captured_coords: Optional[tuple[int, int]] = None
-    
+        self._polling_id: Optional[str] = None
+
     def pick(self) -> None:
-        """Show the coordinate picker overlay"""
-        # Create fullscreen overlay window
-        self.overlay = tk.Toplevel(self.parent)
-        
-        # Make it fullscreen and transparent
-        self.overlay.attributes('-fullscreen', True)
-        self.overlay.attributes('-alpha', 0.3)  # Semi-transparent
-        self.overlay.configure(bg='gray')
-        
-        # Remove window decorations
-        self.overlay.overrideredirect(True)
-        
-        # Capture mouse clicks
-        self.overlay.bind('<Button-1>', self._on_click)
-        
-        # Capture Esc key to cancel
-        self.overlay.bind('<Escape>', self._on_cancel)
-        
-        # Add instructions
-        label = tk.Label(
-            self.overlay,
-            text="Click anywhere to capture coordinates\nPress Esc to cancel",
-            bg='gray',
-            fg='white',
-            font=('Arial', 14, 'bold')
+        """Show the coordinate picker"""
+        self._window = tk.Toplevel(self.parent)
+        self._window.title("Pick Coordinates")
+        self._window.overrideredirect(True)
+        self._window.attributes('-topmost', True)
+        self._window.configure(bg='#222222')
+
+        frame = tk.Frame(self._window, bg='#222222', padx=10, pady=8)
+        frame.pack()
+
+        tk.Label(
+            frame,
+            text="Move mouse to target, then press Enter  |  Esc to cancel",
+            bg='#222222', fg='white',
+            font=('Arial', 12, 'bold'),
+        ).pack()
+
+        self._coord_label = tk.Label(
+            frame,
+            text="X: 0   Y: 0",
+            bg='#222222', fg='#00ff88',
+            font=('Courier', 14, 'bold'),
         )
-        label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        
-        # Make overlay modal
-        self.overlay.transient(self.parent)
-        self.overlay.grab_set()
-    
-    def _on_click(self, event) -> None:
-        """
-        Handle mouse click on overlay.
-        
-        Args:
-            event: Mouse event containing coordinates
-        """
-        # Capture coordinates
-        self.captured_coords = (event.x, event.y)
-        
-        # Close overlay
+        self._coord_label.pack(pady=(4, 6))
+
+        btn_frame = tk.Frame(frame, bg='#222222')
+        btn_frame.pack()
+
+        tk.Button(
+            btn_frame, text="Capture", command=self._capture,
+            bg='#444444', fg='white', font=('Arial', 11),
+            relief='flat', padx=12, pady=2,
+        ).pack(side=tk.LEFT, padx=4)
+
+        tk.Button(
+            btn_frame, text="Cancel", command=self._cancel,
+            bg='#444444', fg='white', font=('Arial', 11),
+            relief='flat', padx=12, pady=2,
+        ).pack(side=tk.LEFT, padx=4)
+
+        # Position at top-center
+        self._window.update_idletasks()
+        w = self._window.winfo_width()
+        sw = self._window.winfo_screenwidth()
+        self._window.geometry(f"+{(sw - w) // 2}+30")
+
+        # Key bindings
+        self._window.bind('<Return>', lambda e: self._capture())
+        self._window.bind('<Escape>', lambda e: self._cancel())
+        self._window.focus_force()
+
+        # Start polling mouse position
+        self._poll_mouse()
+
+    def _poll_mouse(self) -> None:
+        """Update the displayed coordinates with current mouse position"""
+        if self._window is None:
+            return
+        try:
+            x, y = pyautogui.position()
+            self._coord_label.config(text=f"X: {x}   Y: {y}")
+            self._polling_id = self._window.after(50, self._poll_mouse)
+        except Exception:
+            pass
+
+    def _capture(self) -> None:
+        """Capture current mouse position"""
+        if self._window is None:
+            return
+        x, y = pyautogui.position()
+        self.captured_coords = (x, y)
         self._close()
-        
-        # Notify callback
         if self.on_coords_captured:
-            self.on_coords_captured(self.captured_coords[0], self.captured_coords[1])
-    
-    def _on_cancel(self, event) -> None:
-        """Handle Esc key press to cancel"""
+            self.on_coords_captured(x, y)
+
+    def _cancel(self) -> None:
+        """Cancel picking"""
+        if self._window is None:
+            return
         self.captured_coords = None
         self._close()
-    
+
     def _close(self) -> None:
-        """Close the overlay window"""
-        if self.overlay:
+        """Clean up"""
+        if self._polling_id and self._window:
+            self._window.after_cancel(self._polling_id)
+            self._polling_id = None
+        if self._window:
             try:
-                self.overlay.destroy()
+                self._window.destroy()
             except tk.TclError:
                 pass
-            self.overlay = None
-    
+            self._window = None
+
     def is_active(self) -> bool:
-        """
-        Check if the picker is currently active.
-        
-        Returns:
-            True if picker is active, False otherwise
-        """
-        return self.overlay is not None
+        return self._window is not None
