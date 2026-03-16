@@ -42,7 +42,7 @@ jobs:
         run: Compress-Archive -Path dist/AutomationMouseKeyboard -DestinationPath AutomationMouseKeyboard-Windows.zip
 
       - name: Create or update release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Automation Mouse & Keyboard (Latest Build)
