@@ -7,6 +7,7 @@ from src.workflow.models import ExecutionSession, ExcelDataSource
 from src.engine.executor import WorkflowExecutor
 from src.engine.kill_switch import KillSwitch
 from src.action_logging.action_logger import ActionLogger
+from src.preferences import load_preferences, save_preferences
 
 
 class ExecutionPanel:
@@ -36,7 +37,27 @@ class ExecutionPanel:
         self.logger: Optional[ActionLogger] = None
         self.execution_thread: Optional[threading.Thread] = None
         
+        # Register validation command
+        self._validate_non_negative_int = (self.parent.register(self._is_non_negative_int), '%P')
+        
         self._create_widgets()
+    
+    def _is_non_negative_int(self, value: str) -> bool:
+        """
+        Validate that the value is a non-negative integer.
+        
+        Args:
+            value: The string value to validate
+            
+        Returns:
+            True if valid, False otherwise
+        """
+        if value == "":
+            return True  # Allow empty for now, will validate on start
+        try:
+            return int(value) >= 0
+        except ValueError:
+            return False
     
     def _create_widgets(self) -> None:
         """Create panel widgets"""
@@ -57,6 +78,24 @@ class ExecutionPanel:
             variable=self.dry_run_var
         )
         self.dry_run_chk.pack(side=tk.LEFT, padx=10)
+        
+        # Delay input
+        delay_frame = ttk.Frame(self.parent)
+        delay_frame.pack(side=tk.LEFT, padx=5)
+        
+        ttk.Label(delay_frame, text="Delay (ms):").pack(side=tk.LEFT)
+        # Load saved delay or use default
+        saved_prefs = load_preferences()
+        default_delay = saved_prefs.get("step_delay_ms", 200)
+        self.step_delay_var = tk.StringVar(value=str(default_delay))
+        self.step_delay_entry = ttk.Entry(
+            delay_frame,
+            textvariable=self.step_delay_var,
+            width=8,
+            validate="key",
+            validatecommand=self._validate_non_negative_int
+        )
+        self.step_delay_entry.pack(side=tk.LEFT, padx=5)
         
         # Start button
         self.start_btn = ttk.Button(
@@ -116,6 +155,26 @@ class ExecutionPanel:
             messagebox.showerror("Invalid Start Row", "Start row must be a number")
             return
         
+        # Validate step delay
+        try:
+            delay_value = self.step_delay_var.get().strip()
+            if delay_value == "":
+                step_delay_ms = 200  # Default value
+            else:
+                step_delay_ms = int(delay_value)
+                if step_delay_ms < 0:
+                    messagebox.showerror(
+                        "Invalid Delay",
+                        "Delay must be a non-negative integer"
+                    )
+                    return
+        except ValueError:
+            messagebox.showerror("Invalid Delay", "Delay must be a number")
+            return
+        
+        # Save delay value to preferences
+        save_preferences({"step_delay_ms": step_delay_ms})
+        
         # Update session
         self.session.start_row = start_row
         self.session.dry_run = self.dry_run_var.get()
@@ -127,13 +186,14 @@ class ExecutionPanel:
         self.kill_switch = KillSwitch()
         self.kill_switch.start()
         
-        # Create executor with kill_switch
+        # Create executor with kill_switch and step_delay_ms
         self.executor = WorkflowExecutor(
             session=self.session,
             logger=self.logger,
             on_progress=self._on_progress,
             on_complete=self._on_complete,
-            kill_switch=self.kill_switch
+            kill_switch=self.kill_switch,
+            step_delay_ms=step_delay_ms
         )
         
         # Run executor in background thread
@@ -223,11 +283,13 @@ class ExecutionPanel:
             self.stop_btn.config(state=tk.NORMAL)
             self.start_row_entry.config(state=tk.DISABLED)
             self.dry_run_chk.config(state=tk.DISABLED)
+            self.step_delay_entry.config(state=tk.DISABLED)
         else:
             self.start_btn.config(state=tk.NORMAL)
             self.stop_btn.config(state=tk.DISABLED)
             self.start_row_entry.config(state=tk.NORMAL)
             self.dry_run_chk.config(state=tk.NORMAL)
+            self.step_delay_entry.config(state=tk.NORMAL)
     
     def set_session(self, session: ExecutionSession) -> None:
         """

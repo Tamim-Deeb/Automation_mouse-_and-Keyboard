@@ -5,6 +5,7 @@ from src.workflow.models import Workflow, WorkflowStep, ExecutionSession, ExcelD
 from src.engine.step_registry import get_step_handler
 from src.excel.reader import ExcelReader
 from src.action_logging.action_logger import ActionLogger
+from src.automation.wait import WaitModule
 
 if TYPE_CHECKING:
     from src.engine.kill_switch import KillSwitch
@@ -22,7 +23,8 @@ class WorkflowExecutor:
         logger: Optional[ActionLogger] = None,
         on_progress: Optional[Callable[[int, int], None]] = None,
         on_complete: Optional[Callable[[str], None]] = None,
-        kill_switch: Optional['KillSwitch'] = None
+        kill_switch: Optional['KillSwitch'] = None,
+        step_delay_ms: int = 0
     ):
         """
         Initialize the workflow executor.
@@ -33,12 +35,14 @@ class WorkflowExecutor:
             on_progress: Callback for progress updates (current_row, total_rows)
             on_complete: Callback for completion (status message)
             kill_switch: Optional kill switch for safe stop functionality
+            step_delay_ms: Optional delay in milliseconds to insert after each step (default: 0)
         """
         self.session = session
         self.logger = logger
         self.on_progress = on_progress
         self.on_complete = on_complete
         self.kill_switch = kill_switch
+        self.step_delay_ms = step_delay_ms
         
         self._is_running = False
     
@@ -91,6 +95,22 @@ class WorkflowExecutor:
                             break
                         
                         self._execute_step(step, row_data, row_number)
+                        
+                        # Apply step delay after each step (if configured)
+                        if self.step_delay_ms > 0:
+                            wait = WaitModule()
+                            if self.kill_switch:
+                                # Use interruptible sleep with kill switch
+                                was_interrupted = wait.interruptible_sleep(
+                                    self.step_delay_ms,
+                                    self.kill_switch.event
+                                )
+                                if was_interrupted:
+                                    self.session.stop()
+                                    break
+                            else:
+                                # No kill switch, use regular sleep
+                                wait.sleep(self.step_delay_ms)
                     
                     # Check kill-switch after processing row
                     if self.kill_switch and self.kill_switch.is_triggered():

@@ -93,6 +93,16 @@ class KillSwitch:
         """
         return self._event.wait(timeout=timeout)
     
+    @property
+    def event(self) -> threading.Event:
+        """
+        Get the threading event for this kill switch.
+        
+        Returns:
+            The threading event that is set when the kill switch is triggered
+        """
+        return self._event
+    
     def __enter__(self):
         """Context manager entry"""
         self.start()
