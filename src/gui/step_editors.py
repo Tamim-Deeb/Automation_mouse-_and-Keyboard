@@ -241,6 +241,7 @@ class AddStepDialog:
             (StepType.WAIT, "Wait"),
             (StepType.INSERT_COLUMN_VALUE, "Insert Column Value"),
             (StepType.PRESS_HOTKEY, "Press Hotkey"),
+            (StepType.COPY_FIELD, "Copy Field"),
         ]
         
         for step_type, label in step_types:

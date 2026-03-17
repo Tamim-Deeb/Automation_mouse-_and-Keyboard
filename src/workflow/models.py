@@ -13,6 +13,7 @@ class StepType(str, Enum):
     WAIT = "wait"
     INSERT_COLUMN_VALUE = "insert_column_value"
     PRESS_HOTKEY = "press_hotkey"
+    COPY_FIELD = "copy_field"
 
 
 class ExecutionStatus(str, Enum):

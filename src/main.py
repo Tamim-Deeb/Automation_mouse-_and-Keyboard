@@ -1,10 +1,12 @@
 """Main application entry point - wires all panels together"""
 import sys
 import os
+import time
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
 from typing import Optional
+import pyautogui
 from src.workflow.models import Workflow, ExecutionSession, ExcelDataSource
 from src.gui.app import App
 from src.gui.excel_panel import ExcelPanel
@@ -146,11 +148,13 @@ class MainApp:
         from src.automation.mouse import MouseAutomation
         from src.automation.keyboard import KeyboardAutomation
         from src.automation.wait import WaitModule
+        from src.automation.clipboard import ClipboardModule
         
         # Create automation instances
         self.mouse = MouseAutomation(delay_ms=0)
         self.keyboard = KeyboardAutomation(inter_key_delay_ms=0)
         self.wait = WaitModule()
+        self.clipboard = ClipboardModule()
         
         # Register handlers
         def click_handler(step, session, row_data):
@@ -180,12 +184,23 @@ class MainApp:
             hotkey_str = step.params["hotkey"]
             self.keyboard.press_hotkey_by_string(hotkey_str)
         
+        def copy_field_handler(step, session, row_data):
+            # Clear clipboard
+            self.clipboard.clear()
+            time.sleep(0.05)  # 50ms delay
+            # Select all
+            pyautogui.hotkey('ctrl', 'a')
+            time.sleep(0.05)  # 50ms delay
+            # Copy
+            pyautogui.hotkey('ctrl', 'c')
+        
         register_step_handler(StepType.CLICK, click_handler)
         register_step_handler(StepType.DOUBLE_CLICK, double_click_handler)
         register_step_handler(StepType.TYPE_TEXT, type_text_handler)
         register_step_handler(StepType.WAIT, wait_handler)
         register_step_handler(StepType.INSERT_COLUMN_VALUE, insert_column_value_handler)
         register_step_handler(StepType.PRESS_HOTKEY, press_hotkey_handler)
+        register_step_handler(StepType.COPY_FIELD, copy_field_handler)
     
     # Excel panel callback
     def _on_excel_data_loaded(self, headers: list[str], row_count: int) -> None:

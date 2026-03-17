@@ -10,6 +10,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-09
 - N/A (no new storage) (009-safe-stop)
 - Python 3.10+ (existing) + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel) (010-default-step-delay)
 - JSON preferences file (~/.automation-mouse/preferences.json) for delay persistence (010-default-step-delay)
+- Python 3.10+ (existing) + pyautogui (keyboard automation), pyperclip (clipboard clearing), tkinter (GUI) (011-copy-field-step)
 
 ## Project Structure
 
@@ -27,9 +28,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 011-copy-field-step: Added Python 3.10+ (existing) + pyautogui (keyboard automation), pyperclip (clipboard clearing), tkinter (GUI)
 - 010-default-step-delay: Added Python 3.10+ (existing) + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel)
 - 009-safe-stop: Added Python 3.10+ + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel)
-- 003-portable-app: Added Python 3.10+ (existing), Python 3.12 recommended for build + PyInstaller 6.0+ (build tool), pyinstaller-hooks-contrib (community hooks)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
