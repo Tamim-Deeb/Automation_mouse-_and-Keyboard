@@ -1,7 +1,7 @@
 """Workflow execution engine"""
 from typing import Optional, Callable, TYPE_CHECKING
 from datetime import datetime
-from src.workflow.models import Workflow, WorkflowStep, ExecutionSession, ExcelDataSource, LogEntry, StepType
+from src.workflow.models import Workflow, WorkflowStep, ExecutionSession, ExcelDataSource, LogEntry, StepType, Hotkey
 from src.engine.step_registry import get_step_handler
 from src.excel.reader import ExcelReader
 from src.action_logging.action_logger import ActionLogger
@@ -192,6 +192,13 @@ class WorkflowExecutor:
                     row_data_with_value = row_data.copy()
                     row_data_with_value[column_name] = value
                     handler(step, self.session, row_data_with_value)
+                # Suppress kill switch when automating Esc hotkey
+                elif step.type == StepType.PRESS_HOTKEY and step.params.get("hotkey") == Hotkey.ESCAPE.value and self.kill_switch:
+                    self.kill_switch.suppress()
+                    try:
+                        handler(step, self.session, row_data)
+                    finally:
+                        self.kill_switch.unsuppress()
                 else:
                     handler(step, self.session, row_data)
             except Exception as e:

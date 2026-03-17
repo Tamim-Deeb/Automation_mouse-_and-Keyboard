@@ -16,6 +16,7 @@ class KillSwitch:
         self._listener: Optional[keyboard.Listener] = None
         self._listener_thread: Optional[threading.Thread] = None
         self._is_running = False
+        self._suppressed = False
     
     def start(self) -> None:
         """Start the kill-switch listener"""
@@ -29,8 +30,8 @@ class KillSwitch:
         def on_press(key):
             """Handle key press events"""
             try:
-                # Check for Esc key
-                if key == keyboard.Key.esc:
+                # Check for Esc key (ignore if suppressed by automated hotkey)
+                if key == keyboard.Key.esc and not self._suppressed:
                     self._event.set()
             except AttributeError:
                 pass
@@ -93,6 +94,14 @@ class KillSwitch:
         """
         return self._event.wait(timeout=timeout)
     
+    def suppress(self) -> None:
+        """Temporarily suppress kill-switch (used when automating Esc hotkey)"""
+        self._suppressed = True
+
+    def unsuppress(self) -> None:
+        """Re-enable kill-switch after suppression"""
+        self._suppressed = False
+
     @property
     def event(self) -> threading.Event:
         """
