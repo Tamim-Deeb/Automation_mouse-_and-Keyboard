@@ -69,6 +69,39 @@ class MouseAutomation:
             warnings.warn(f"Failed to double-click at ({x}, {y}): {e}")
             return False
     
+    def drag(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
+        """
+        Perform a mouse drag from start to end coordinates.
+
+        Presses the left mouse button at (start_x, start_y), moves to
+        (end_x, end_y), then releases the button.
+
+        Args:
+            start_x: X coordinate of drag start
+            start_y: Y coordinate of drag start
+            end_x: X coordinate of drag end
+            end_y: Y coordinate of drag end
+
+        Returns:
+            True if drag was executed, False on failure
+        """
+        if not self._validate_coordinates(start_x, start_y):
+            warnings.warn(f"Start coordinates ({start_x}, {start_y}) are out of screen bounds. Skipping drag.")
+            return False
+        if not self._validate_coordinates(end_x, end_y):
+            warnings.warn(f"End coordinates ({end_x}, {end_y}) are out of screen bounds. Skipping drag.")
+            return False
+
+        try:
+            pyautogui.mouseDown(start_x, start_y)
+            pyautogui.moveTo(end_x, end_y, duration=0.5)
+            pyautogui.mouseUp()
+            self._apply_delay()
+            return True
+        except Exception as e:
+            warnings.warn(f"Failed to drag from ({start_x}, {start_y}) to ({end_x}, {end_y}): {e}")
+            return False
+
     def _validate_coordinates(self, x: int, y: int) -> bool:
         """
         Validate that coordinates are within screen bounds.

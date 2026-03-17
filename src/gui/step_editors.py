@@ -28,7 +28,8 @@ class StepEditorDialog:
         
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(f"Edit {step_type.value.replace('_', ' ').title()} Step")
-        self.dialog.geometry("400x300")
+        dialog_height = 450 if step_type == StepType.CLICK_AND_MOVE else 300
+        self.dialog.geometry(f"400x{dialog_height}")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -60,7 +61,9 @@ class StepEditorDialog:
             self._create_column_field(container)
         elif self.step_type == StepType.PRESS_HOTKEY:
             self._create_hotkey_field(container)
-        
+        elif self.step_type == StepType.CLICK_AND_MOVE:
+            self._create_drag_coordinate_fields(container)
+
         # Button frame
         button_frame = ttk.Frame(container)
         button_frame.pack(pady=20)
@@ -102,6 +105,62 @@ class StepEditorDialog:
         self.y_entry.delete(0, tk.END)
         self.y_entry.insert(0, str(y))
     
+    def _create_drag_coordinate_fields(self, container: ttk.Frame) -> None:
+        """Create start and end coordinate fields for click_and_move step"""
+        # Start position
+        ttk.Label(container, text="Start Position:", font=('TkDefaultFont', 9, 'bold')).pack(anchor=tk.W, pady=(5, 0))
+
+        start_x_frame = ttk.Frame(container)
+        start_x_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(start_x_frame, text="X:").pack(side=tk.LEFT)
+        self.start_x_entry = ttk.Entry(start_x_frame, width=15)
+        self.start_x_entry.pack(side=tk.LEFT, padx=5)
+        if self.on_pick_coords:
+            ttk.Button(
+                start_x_frame, text="Pick",
+                command=lambda: self.on_pick_coords(self._on_start_coords_picked)
+            ).pack(side=tk.LEFT, padx=5)
+
+        start_y_frame = ttk.Frame(container)
+        start_y_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(start_y_frame, text="Y:").pack(side=tk.LEFT)
+        self.start_y_entry = ttk.Entry(start_y_frame, width=15)
+        self.start_y_entry.pack(side=tk.LEFT, padx=5)
+
+        # End position
+        ttk.Label(container, text="End Position:", font=('TkDefaultFont', 9, 'bold')).pack(anchor=tk.W, pady=(10, 0))
+
+        end_x_frame = ttk.Frame(container)
+        end_x_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(end_x_frame, text="X:").pack(side=tk.LEFT)
+        self.end_x_entry = ttk.Entry(end_x_frame, width=15)
+        self.end_x_entry.pack(side=tk.LEFT, padx=5)
+        if self.on_pick_coords:
+            ttk.Button(
+                end_x_frame, text="Pick",
+                command=lambda: self.on_pick_coords(self._on_end_coords_picked)
+            ).pack(side=tk.LEFT, padx=5)
+
+        end_y_frame = ttk.Frame(container)
+        end_y_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(end_y_frame, text="Y:").pack(side=tk.LEFT)
+        self.end_y_entry = ttk.Entry(end_y_frame, width=15)
+        self.end_y_entry.pack(side=tk.LEFT, padx=5)
+
+    def _on_start_coords_picked(self, x: int, y: int) -> None:
+        """Handle coordinate picker callback for start position"""
+        self.start_x_entry.delete(0, tk.END)
+        self.start_x_entry.insert(0, str(x))
+        self.start_y_entry.delete(0, tk.END)
+        self.start_y_entry.insert(0, str(y))
+
+    def _on_end_coords_picked(self, x: int, y: int) -> None:
+        """Handle coordinate picker callback for end position"""
+        self.end_x_entry.delete(0, tk.END)
+        self.end_x_entry.insert(0, str(x))
+        self.end_y_entry.delete(0, tk.END)
+        self.end_y_entry.insert(0, str(y))
+
     def _create_text_field(self, container: ttk.Frame) -> None:
         """Create text field for type_text step"""
         ttk.Label(container, text="Text to type:").pack(anchor=tk.W, pady=(5, 0))
@@ -183,6 +242,17 @@ class StepEditorDialog:
                 return
             self.params = {"column_name": column}
         
+        elif self.step_type == StepType.CLICK_AND_MOVE:
+            try:
+                start_x = int(self.start_x_entry.get())
+                start_y = int(self.start_y_entry.get())
+                end_x = int(self.end_x_entry.get())
+                end_y = int(self.end_y_entry.get())
+                self.params = {"start_x": start_x, "start_y": start_y, "end_x": end_x, "end_y": end_y}
+            except ValueError:
+                tk.messagebox.showerror("Validation Error", "All coordinate fields must be valid numbers")
+                return
+
         elif self.step_type == StepType.PRESS_HOTKEY:
             custom_key = self.key_entry.get().strip()
             custom_modifier = self.modifier_entry.get().strip()
@@ -267,6 +337,7 @@ class AddStepDialog:
             (StepType.INSERT_COLUMN_VALUE, "Insert Column Value"),
             (StepType.PRESS_HOTKEY, "Press Hotkey"),
             (StepType.COPY_FIELD, "Copy Field"),
+            (StepType.CLICK_AND_MOVE, "Click And Move"),
         ]
         
         for step_type, label in step_types:

@@ -14,6 +14,7 @@ class StepType(str, Enum):
     INSERT_COLUMN_VALUE = "insert_column_value"
     PRESS_HOTKEY = "press_hotkey"
     COPY_FIELD = "copy_field"
+    CLICK_AND_MOVE = "click_and_move"
 
 
 class ExecutionStatus(str, Enum):
@@ -80,7 +81,12 @@ class WorkflowStep:
         elif self.type == StepType.PRESS_HOTKEY:
             if "hotkey" not in self.params or not isinstance(self.params["hotkey"], str) or not self.params["hotkey"]:
                 errors.append("Press-hotkey step requires 'hotkey' parameter (non-empty string)")
-        
+
+        elif self.type == StepType.CLICK_AND_MOVE:
+            for coord in ["start_x", "start_y", "end_x", "end_y"]:
+                if coord not in self.params or not isinstance(self.params[coord], int):
+                    errors.append(f"Click-and-move step requires '{coord}' parameter (integer)")
+
         return errors
 
 

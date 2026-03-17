@@ -194,6 +194,12 @@ class MainApp:
             # Copy
             pyautogui.hotkey('ctrl', 'c')
         
+        def click_and_move_handler(step, session, row_data):
+            self.mouse.drag(
+                step.params["start_x"], step.params["start_y"],
+                step.params["end_x"], step.params["end_y"]
+            )
+
         register_step_handler(StepType.CLICK, click_handler)
         register_step_handler(StepType.DOUBLE_CLICK, double_click_handler)
         register_step_handler(StepType.TYPE_TEXT, type_text_handler)
@@ -201,6 +207,7 @@ class MainApp:
         register_step_handler(StepType.INSERT_COLUMN_VALUE, insert_column_value_handler)
         register_step_handler(StepType.PRESS_HOTKEY, press_hotkey_handler)
         register_step_handler(StepType.COPY_FIELD, copy_field_handler)
+        register_step_handler(StepType.CLICK_AND_MOVE, click_and_move_handler)
     
     # Excel panel callback
     def _on_excel_data_loaded(self, headers: list[str], row_count: int) -> None:

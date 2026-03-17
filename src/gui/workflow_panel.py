@@ -151,7 +151,7 @@ class WorkflowPanel:
                 self.parent,
                 step_type,
                 on_save,
-                self._on_pick_coords if step_type in [StepType.CLICK, StepType.DOUBLE_CLICK] else None
+                self._on_pick_coords if step_type in [StepType.CLICK, StepType.DOUBLE_CLICK, StepType.CLICK_AND_MOVE] else None
             )
             
             # Set available columns if needed
@@ -277,6 +277,8 @@ class WorkflowPanel:
             params = f"[{step.params.get('column_name', '')}]"
         elif step.type == StepType.PRESS_HOTKEY:
             params = f"[{step.params.get('hotkey', '')}]"
+        elif step.type == StepType.CLICK_AND_MOVE:
+            params = f"({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) \u2192 ({step.params.get('end_x', '')}, {step.params.get('end_y', '')})"
         else:
             params = ""
         
