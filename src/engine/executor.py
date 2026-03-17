@@ -285,6 +285,8 @@ class WorkflowExecutor:
             column = step.params.get('column_name', '')
             mode = step.params.get('write_mode', '')
             return f"Write to Excel: [{column}] ({mode})"
+        elif step.type == StepType.SCREEN_LOADED:
+            return f"Screen loaded: ({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) → ({step.params.get('end_x', '')}, {step.params.get('end_y', '')}) [max: {step.params.get('max_tries', '')}]"
         else:
             return step.type.value
     

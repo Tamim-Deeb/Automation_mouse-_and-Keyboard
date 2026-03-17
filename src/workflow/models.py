@@ -16,6 +16,7 @@ class StepType(str, Enum):
     COPY_FIELD = "copy_field"
     CLICK_AND_MOVE = "click_and_move"
     WRITE_TO_EXCEL = "write_to_excel"
+    SCREEN_LOADED = "screen_loaded"
 
 
 class ExecutionStatus(str, Enum):
@@ -93,6 +94,17 @@ class WorkflowStep:
                 errors.append("Write-to-excel step requires 'column_name' parameter (non-empty string)")
             if "write_mode" not in self.params or self.params["write_mode"] not in ("mark_done", "paste_clipboard"):
                 errors.append("Write-to-excel step requires 'write_mode' parameter ('mark_done' or 'paste_clipboard')")
+
+        elif self.type == StepType.SCREEN_LOADED:
+            for coord in ["start_x", "start_y", "end_x", "end_y"]:
+                if coord not in self.params or not isinstance(self.params[coord], int):
+                    errors.append(f"Screen-loaded step requires '{coord}' parameter (integer)")
+            if "max_tries" not in self.params:
+                errors.append("Screen-loaded step requires 'max_tries' parameter")
+            else:
+                max_tries = self.params["max_tries"]
+                if not isinstance(max_tries, int) or max_tries < 1:
+                    errors.append("Screen-loaded step requires 'max_tries' parameter (integer >= 1)")
 
         return errors
 

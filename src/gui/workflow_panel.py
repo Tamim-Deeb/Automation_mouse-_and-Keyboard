@@ -151,7 +151,7 @@ class WorkflowPanel:
                 self.parent,
                 step_type,
                 on_save,
-                self._on_pick_coords if step_type in [StepType.CLICK, StepType.DOUBLE_CLICK, StepType.CLICK_AND_MOVE] else None
+                self._on_pick_coords if step_type in [StepType.CLICK, StepType.DOUBLE_CLICK, StepType.CLICK_AND_MOVE, StepType.SCREEN_LOADED] else None
             )
             
             # Set available columns if needed
@@ -283,6 +283,8 @@ class WorkflowPanel:
             column = step.params.get('column_name', '')
             mode = "Mark Done" if step.params.get('write_mode', '') == "mark_done" else "Paste Clipboard"
             params = f"[{column}] ({mode})"
+        elif step.type == StepType.SCREEN_LOADED:
+            params = f"({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) \u2192 ({step.params.get('end_x', '')}, {step.params.get('end_y', '')}) [max: {step.params.get('max_tries', '')}]"
         else:
             params = ""
         

@@ -218,6 +218,53 @@ class MainApp:
                 value
             )
 
+        def screen_loaded_handler(step, session, row_data):
+            """Handler for screen_loaded step - waits for text to appear on screen"""
+            start_x = step.params["start_x"]
+            start_y = step.params["start_y"]
+            end_x = step.params["end_x"]
+            end_y = step.params["end_y"]
+            max_tries = step.params["max_tries"]
+
+            screen_loaded = False
+            for attempt in range(max_tries):
+                # Check if session has been stopped (e.g., by kill-switch)
+                if session.status != "running":
+                    return
+
+                # Clear clipboard
+                self.clipboard.clear()
+                time.sleep(0.05)  # 50ms delay
+
+                # Drag to select text
+                self.mouse.drag(start_x, start_y, end_x, end_y)
+                time.sleep(0.05)  # 50ms delay
+
+                # Copy selected text
+                pyautogui.hotkey('ctrl', 'c')
+                time.sleep(0.05)  # 50ms delay
+
+                # Check if clipboard has content
+                clipboard_content = self.clipboard.paste().strip()
+                if clipboard_content:
+                    screen_loaded = True
+                    break
+
+                # Wait before retry (1 second, interruptible by kill-switch)
+                if attempt < max_tries - 1:
+                    kill_switch = self.execution_panel.kill_switch
+                    if kill_switch:
+                        was_interrupted = self.wait.interruptible_sleep(1000, kill_switch.event)
+                        if was_interrupted:
+                            session.stop()
+                            return
+                    else:
+                        self.wait.sleep(1000)
+
+            # If max tries exceeded without success, stop the workflow
+            if not screen_loaded and session.status == "running":
+                session.stop()
+
         register_step_handler(StepType.CLICK, click_handler)
         register_step_handler(StepType.DOUBLE_CLICK, double_click_handler)
         register_step_handler(StepType.TYPE_TEXT, type_text_handler)
@@ -227,6 +274,7 @@ class MainApp:
         register_step_handler(StepType.COPY_FIELD, copy_field_handler)
         register_step_handler(StepType.CLICK_AND_MOVE, click_and_move_handler)
         register_step_handler(StepType.WRITE_TO_EXCEL, write_to_excel_handler)
+        register_step_handler(StepType.SCREEN_LOADED, screen_loaded_handler)
     
     # Excel panel callback
     def _on_excel_data_loaded(self, headers: list[str], row_count: int) -> None:
