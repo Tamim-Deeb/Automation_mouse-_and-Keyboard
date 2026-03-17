@@ -155,7 +155,7 @@ class WorkflowPanel:
             )
             
             # Set available columns if needed
-            if step_type == StepType.INSERT_COLUMN_VALUE and self.available_columns:
+            if step_type in [StepType.INSERT_COLUMN_VALUE, StepType.WRITE_TO_EXCEL] and self.available_columns:
                 editor.set_columns(self.available_columns)
         
         # Show add step dialog
@@ -279,6 +279,10 @@ class WorkflowPanel:
             params = f"[{step.params.get('hotkey', '')}]"
         elif step.type == StepType.CLICK_AND_MOVE:
             params = f"({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) \u2192 ({step.params.get('end_x', '')}, {step.params.get('end_y', '')})"
+        elif step.type == StepType.WRITE_TO_EXCEL:
+            column = step.params.get('column_name', '')
+            mode = "Mark Done" if step.params.get('write_mode', '') == "mark_done" else "Paste Clipboard"
+            params = f"[{column}] ({mode})"
         else:
             params = ""
         

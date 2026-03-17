@@ -281,6 +281,10 @@ class WorkflowExecutor:
         elif step.type == StepType.PRESS_HOTKEY:
             hotkey = step.params.get('hotkey', '')
             return f"Press hotkey: [{hotkey}]"
+        elif step.type == StepType.WRITE_TO_EXCEL:
+            column = step.params.get('column_name', '')
+            mode = step.params.get('write_mode', '')
+            return f"Write to Excel: [{column}] ({mode})"
         else:
             return step.type.value
     

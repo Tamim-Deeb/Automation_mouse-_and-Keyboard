@@ -28,7 +28,12 @@ class StepEditorDialog:
         
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(f"Edit {step_type.value.replace('_', ' ').title()} Step")
-        dialog_height = 450 if step_type == StepType.CLICK_AND_MOVE else 300
+        if step_type == StepType.CLICK_AND_MOVE:
+            dialog_height = 450
+        elif step_type == StepType.WRITE_TO_EXCEL:
+            dialog_height = 350
+        else:
+            dialog_height = 300
         self.dialog.geometry(f"400x{dialog_height}")
         self.dialog.transient(parent)
         self.dialog.grab_set()
@@ -63,6 +68,8 @@ class StepEditorDialog:
             self._create_hotkey_field(container)
         elif self.step_type == StepType.CLICK_AND_MOVE:
             self._create_drag_coordinate_fields(container)
+        elif self.step_type == StepType.WRITE_TO_EXCEL:
+            self._create_write_to_excel_fields(container)
 
         # Button frame
         button_frame = ttk.Frame(container)
@@ -205,6 +212,30 @@ class StepEditorDialog:
         self.key_entry = ttk.Entry(container, width=30)
         self.key_entry.pack(fill=tk.X, pady=(0, 5))
     
+    def _create_write_to_excel_fields(self, container: ttk.Frame) -> None:
+        """Create column dropdown and write mode selector for write_to_excel step"""
+        # Column dropdown
+        ttk.Label(container, text="Target Column:").pack(anchor=tk.W, pady=(5, 0))
+
+        self.write_column_var = tk.StringVar()
+        self.write_column_dropdown = ttk.OptionMenu(container, self.write_column_var, "", *[])
+        self.write_column_dropdown.pack(fill=tk.X, pady=5)
+
+        # Write mode selector
+        ttk.Label(container, text="Write Mode:").pack(anchor=tk.W, pady=(10, 0))
+
+        self.write_mode_var = tk.StringVar(value="mark_done")
+
+        mode_frame = ttk.Frame(container)
+        mode_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Radiobutton(
+            mode_frame, text="Mark Done (x)", variable=self.write_mode_var, value="mark_done"
+        ).pack(anchor=tk.W)
+        ttk.Radiobutton(
+            mode_frame, text="Paste Clipboard", variable=self.write_mode_var, value="paste_clipboard"
+        ).pack(anchor=tk.W)
+
     def _on_save(self) -> None:
         """Handle save button click"""
         # Validate and collect parameters based on step type
@@ -269,7 +300,15 @@ class StepEditorDialog:
             else:
                 # Use dropdown selection
                 self.params = {"hotkey": self.hotkey_var.get()}
-        
+
+        elif self.step_type == StepType.WRITE_TO_EXCEL:
+            column = self.write_column_var.get()
+            if not column:
+                tk.messagebox.showerror("Validation Error", "Please select a target column")
+                return
+            write_mode = self.write_mode_var.get()
+            self.params = {"column_name": column, "write_mode": write_mode}
+
         # Call save callback
         self.on_save(self.params)
         self.dialog.destroy()
@@ -284,11 +323,20 @@ class StepEditorDialog:
         if self.step_type == StepType.INSERT_COLUMN_VALUE:
             menu = self.column_dropdown["menu"]
             menu.delete(0, tk.END)
-            
+
             for column in columns:
                 menu.add_command(
                     label=column,
                     command=lambda c=column: self.column_var.set(c)
+                )
+        elif self.step_type == StepType.WRITE_TO_EXCEL:
+            menu = self.write_column_dropdown["menu"]
+            menu.delete(0, tk.END)
+
+            for column in columns:
+                menu.add_command(
+                    label=column,
+                    command=lambda c=column: self.write_column_var.set(c)
                 )
 
 
@@ -338,6 +386,7 @@ class AddStepDialog:
             (StepType.PRESS_HOTKEY, "Press Hotkey"),
             (StepType.COPY_FIELD, "Copy Field"),
             (StepType.CLICK_AND_MOVE, "Click And Move"),
+            (StepType.WRITE_TO_EXCEL, "Write To Excel"),
         ]
         
         for step_type, label in step_types:

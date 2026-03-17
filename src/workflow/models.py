@@ -15,6 +15,7 @@ class StepType(str, Enum):
     PRESS_HOTKEY = "press_hotkey"
     COPY_FIELD = "copy_field"
     CLICK_AND_MOVE = "click_and_move"
+    WRITE_TO_EXCEL = "write_to_excel"
 
 
 class ExecutionStatus(str, Enum):
@@ -86,6 +87,12 @@ class WorkflowStep:
             for coord in ["start_x", "start_y", "end_x", "end_y"]:
                 if coord not in self.params or not isinstance(self.params[coord], int):
                     errors.append(f"Click-and-move step requires '{coord}' parameter (integer)")
+
+        elif self.type == StepType.WRITE_TO_EXCEL:
+            if "column_name" not in self.params or not isinstance(self.params["column_name"], str) or not self.params["column_name"]:
+                errors.append("Write-to-excel step requires 'column_name' parameter (non-empty string)")
+            if "write_mode" not in self.params or self.params["write_mode"] not in ("mark_done", "paste_clipboard"):
+                errors.append("Write-to-excel step requires 'write_mode' parameter ('mark_done' or 'paste_clipboard')")
 
         return errors
 

@@ -149,12 +149,14 @@ class MainApp:
         from src.automation.keyboard import KeyboardAutomation
         from src.automation.wait import WaitModule
         from src.automation.clipboard import ClipboardModule
+        from src.excel.writer import ExcelWriter
         
         # Create automation instances
         self.mouse = MouseAutomation(delay_ms=0)
         self.keyboard = KeyboardAutomation(inter_key_delay_ms=0)
         self.wait = WaitModule()
         self.clipboard = ClipboardModule()
+        self.excel_writer = ExcelWriter()
         
         # Register handlers
         def click_handler(step, session, row_data):
@@ -200,6 +202,22 @@ class MainApp:
                 step.params["end_x"], step.params["end_y"]
             )
 
+        def write_to_excel_handler(step, session, row_data):
+            write_mode = step.params["write_mode"]
+            column_name = step.params["column_name"]
+            if write_mode == "mark_done":
+                value = "x"
+            else:
+                value = self.clipboard.paste()
+            excel_row = session.current_row + 1  # header is row 1, data starts row 2
+            self.excel_writer.write_cell(
+                session.data_source.file_path,
+                session.data_source.sheet_name,
+                excel_row,
+                column_name,
+                value
+            )
+
         register_step_handler(StepType.CLICK, click_handler)
         register_step_handler(StepType.DOUBLE_CLICK, double_click_handler)
         register_step_handler(StepType.TYPE_TEXT, type_text_handler)
@@ -208,6 +226,7 @@ class MainApp:
         register_step_handler(StepType.PRESS_HOTKEY, press_hotkey_handler)
         register_step_handler(StepType.COPY_FIELD, copy_field_handler)
         register_step_handler(StepType.CLICK_AND_MOVE, click_and_move_handler)
+        register_step_handler(StepType.WRITE_TO_EXCEL, write_to_excel_handler)
     
     # Excel panel callback
     def _on_excel_data_loaded(self, headers: list[str], row_count: int) -> None:

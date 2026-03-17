@@ -14,6 +14,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-09
 - Python 3.10+ + pyautogui (keyboard automation), tkinter (GUI), pynput (kill-switch) (012-custom-hotkey-input)
 - JSON workflow files (existing serializer) (012-custom-hotkey-input)
 - Python 3.10+ + pyautogui (mouse automation), tkinter (GUI), pynput (kill-switch) (013-click-and-move-step)
+- Python 3.10+ + openpyxl (Excel read/write), pyperclip (clipboard), tkinter (GUI), pyautogui (014-write-to-excel-step)
+- Excel .xlsx files (openpyxl) (014-write-to-excel-step)
 
 ## Project Structure
 
@@ -31,9 +33,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 014-write-to-excel-step: Added Python 3.10+ + openpyxl (Excel read/write), pyperclip (clipboard), tkinter (GUI), pyautogui
 - 013-click-and-move-step: Added Python 3.10+ + pyautogui (mouse automation), tkinter (GUI), pynput (kill-switch)
 - 012-custom-hotkey-input: Added Python 3.10+ + pyautogui (keyboard automation), tkinter (GUI), pynput (kill-switch)
-- 011-copy-field-step: Added Python 3.10+ (existing) + pyautogui (keyboard automation), pyperclip (clipboard clearing), tkinter (GUI)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
