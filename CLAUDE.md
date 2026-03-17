@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-09
 - Python 3.10+ (existing) + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel) (010-default-step-delay)
 - JSON preferences file (~/.automation-mouse/preferences.json) for delay persistence (010-default-step-delay)
 - Python 3.10+ (existing) + pyautogui (keyboard automation), pyperclip (clipboard clearing), tkinter (GUI) (011-copy-field-step)
+- Python 3.10+ + pyautogui (keyboard automation), tkinter (GUI), pynput (kill-switch) (012-custom-hotkey-input)
+- JSON workflow files (existing serializer) (012-custom-hotkey-input)
 
 ## Project Structure
 
@@ -28,9 +30,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 012-custom-hotkey-input: Added Python 3.10+ + pyautogui (keyboard automation), tkinter (GUI), pynput (kill-switch)
 - 011-copy-field-step: Added Python 3.10+ (existing) + pyautogui (keyboard automation), pyperclip (clipboard clearing), tkinter (GUI)
 - 010-default-step-delay: Added Python 3.10+ (existing) + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel)
-- 009-safe-stop: Added Python 3.10+ + pyautogui (mouse/keyboard), pynput (kill-switch listener), tkinter (GUI), openpyxl (Excel)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

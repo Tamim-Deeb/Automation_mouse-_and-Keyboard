@@ -127,13 +127,24 @@ class StepEditorDialog:
         self.column_dropdown.pack(fill=tk.X, pady=5)
     
     def _create_hotkey_field(self, container: ttk.Frame) -> None:
-        """Create hotkey dropdown for press_hotkey step"""
+        """Create hotkey dropdown and custom input fields for press_hotkey step"""
         ttk.Label(container, text="Hotkey:").pack(anchor=tk.W, pady=(5, 0))
-        
+
         hotkeys = [h.value for h in Hotkey]
         self.hotkey_var = tk.StringVar()
         self.hotkey_dropdown = ttk.OptionMenu(container, self.hotkey_var, hotkeys[0], *hotkeys)
         self.hotkey_dropdown.pack(fill=tk.X, pady=5)
+
+        # Custom hotkey input
+        ttk.Label(container, text="— OR enter custom hotkey —", font=('TkDefaultFont', 8)).pack(pady=(10, 5))
+
+        ttk.Label(container, text="Modifier (optional):").pack(anchor=tk.W)
+        self.modifier_entry = ttk.Entry(container, width=30)
+        self.modifier_entry.pack(fill=tk.X, pady=(0, 5))
+
+        ttk.Label(container, text="Key:").pack(anchor=tk.W)
+        self.key_entry = ttk.Entry(container, width=30)
+        self.key_entry.pack(fill=tk.X, pady=(0, 5))
     
     def _on_save(self) -> None:
         """Handle save button click"""
@@ -173,7 +184,21 @@ class StepEditorDialog:
             self.params = {"column_name": column}
         
         elif self.step_type == StepType.PRESS_HOTKEY:
-            self.params = {"hotkey": self.hotkey_var.get()}
+            custom_key = self.key_entry.get().strip()
+            custom_modifier = self.modifier_entry.get().strip()
+            if custom_key:
+                # Custom input takes priority over dropdown
+                if custom_modifier:
+                    hotkey_str = custom_modifier.lower() + "+" + custom_key.lower()
+                else:
+                    hotkey_str = custom_key.lower()
+                self.params = {"hotkey": hotkey_str}
+            elif custom_modifier and not custom_key:
+                tk.messagebox.showerror("Validation Error", "Key is required for custom hotkey")
+                return
+            else:
+                # Use dropdown selection
+                self.params = {"hotkey": self.hotkey_var.get()}
         
         # Call save callback
         self.on_save(self.params)

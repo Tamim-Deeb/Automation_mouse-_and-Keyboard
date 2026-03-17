@@ -80,6 +80,25 @@ class KeyboardAutomation:
             warnings.warn(f"Failed to press hotkey {hotkey}: {e}")
             return False
     
+    def press_custom_hotkey(self, hotkey_str: str) -> bool:
+        """
+        Press a custom hotkey combination from a string like "ctrl+f1" or "ctrl+shift+f1".
+
+        Args:
+            hotkey_str: Key combination string with keys separated by "+" (e.g., "ctrl+f1", "f5")
+
+        Returns:
+            True if hotkey was pressed successfully, False otherwise
+        """
+        try:
+            keys = hotkey_str.lower().split('+')
+            pyautogui.hotkey(*keys)
+            self._apply_delay()
+            return True
+        except Exception as e:
+            warnings.warn(f"Failed to press custom hotkey '{hotkey_str}': {e}")
+            return False
+
     def press_hotkey_by_string(self, hotkey_str: str) -> bool:
         """
         Press a hotkey by its string representation.
@@ -94,8 +113,7 @@ class KeyboardAutomation:
             hotkey = Hotkey(hotkey_str)
             return self.press_hotkey(hotkey)
         except ValueError:
-            warnings.warn(f"Invalid hotkey string: {hotkey_str}")
-            return False
+            return self.press_custom_hotkey(hotkey_str)
     
     def _apply_delay(self) -> None:
         """Apply the configured delay after an operation"""

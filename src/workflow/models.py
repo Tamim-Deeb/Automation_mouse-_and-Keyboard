@@ -78,11 +78,8 @@ class WorkflowStep:
                 errors.append(f"Column '{self.params['column_name']}' not found in available columns")
                 
         elif self.type == StepType.PRESS_HOTKEY:
-            if "hotkey" not in self.params or not isinstance(self.params["hotkey"], str):
-                errors.append("Press-hotkey step requires 'hotkey' parameter")
-            elif self.params["hotkey"] not in [h.value for h in Hotkey]:
-                valid_hotkeys = [h.value for h in Hotkey]
-                errors.append(f"Invalid hotkey '{self.params['hotkey']}'. Valid hotkeys: {', '.join(valid_hotkeys)}")
+            if "hotkey" not in self.params or not isinstance(self.params["hotkey"], str) or not self.params["hotkey"]:
+                errors.append("Press-hotkey step requires 'hotkey' parameter (non-empty string)")
         
         return errors
 
