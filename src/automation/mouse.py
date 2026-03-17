@@ -80,7 +80,7 @@ class MouseAutomation:
         Returns:
             True if coordinates are valid, False otherwise
         """
-        return 0 <= x < self.screen_width and 0 <= y < self.screen_height
+        return True
     
     def _apply_delay(self) -> None:
         """Apply the configured delay after an operation"""

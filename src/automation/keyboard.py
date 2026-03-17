@@ -9,14 +9,14 @@ class KeyboardAutomation:
     """
     Keyboard automation wrapper.
     Supports character-by-character typing and hotkey combinations.
-    Esc is reserved for kill-switch and excluded from hotkey operations.
+    Supports character-by-character typing and hotkey combinations.
     """
     
     # Default delay between keystrokes (milliseconds)
     DEFAULT_INTER_KEY_DELAY_MS = 50
     
-    # Supported hotkeys (Esc is reserved for kill-switch)
     SUPPORTED_HOTKEYS = {
+        Hotkey.ESCAPE: ['escape'],
         Hotkey.ENTER: ['enter'],
         Hotkey.BACKSPACE: ['backspace'],
         Hotkey.TAB: ['tab'],

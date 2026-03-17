@@ -142,8 +142,6 @@ class StepEditorDialog:
             try:
                 x = int(self.x_entry.get())
                 y = int(self.y_entry.get())
-                if x < 0 or y < 0:
-                    raise ValueError("Coordinates must be non-negative")
                 self.params = {"x": x, "y": y}
             except ValueError as e:
                 tk.messagebox.showerror("Validation Error", str(e))

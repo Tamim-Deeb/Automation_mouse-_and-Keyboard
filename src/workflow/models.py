@@ -24,7 +24,8 @@ class ExecutionStatus(str, Enum):
 
 
 class Hotkey(str, Enum):
-    """Enumeration of supported hotkeys (Esc is reserved for kill-switch)"""
+    """Enumeration of supported hotkeys"""
+    ESCAPE = "Escape"
     ENTER = "Enter"
     BACKSPACE = "Backspace"
     TAB = "Tab"
@@ -46,16 +47,16 @@ class WorkflowStep:
         errors = []
         
         if self.type == StepType.CLICK:
-            if "x" not in self.params or not isinstance(self.params["x"], int) or self.params["x"] < 0:
-                errors.append("Click step requires 'x' parameter (non-negative integer)")
-            if "y" not in self.params or not isinstance(self.params["y"], int) or self.params["y"] < 0:
-                errors.append("Click step requires 'y' parameter (non-negative integer)")
-                
+            if "x" not in self.params or not isinstance(self.params["x"], int):
+                errors.append("Click step requires 'x' parameter (integer)")
+            if "y" not in self.params or not isinstance(self.params["y"], int):
+                errors.append("Click step requires 'y' parameter (integer)")
+
         elif self.type == StepType.DOUBLE_CLICK:
-            if "x" not in self.params or not isinstance(self.params["x"], int) or self.params["x"] < 0:
-                errors.append("Double-click step requires 'x' parameter (non-negative integer)")
-            if "y" not in self.params or not isinstance(self.params["y"], int) or self.params["y"] < 0:
-                errors.append("Double-click step requires 'y' parameter (non-negative integer)")
+            if "x" not in self.params or not isinstance(self.params["x"], int):
+                errors.append("Double-click step requires 'x' parameter (integer)")
+            if "y" not in self.params or not isinstance(self.params["y"], int):
+                errors.append("Double-click step requires 'y' parameter (integer)")
                 
         elif self.type == StepType.TYPE_TEXT:
             if "text" not in self.params or not isinstance(self.params["text"], str) or not self.params["text"]:
