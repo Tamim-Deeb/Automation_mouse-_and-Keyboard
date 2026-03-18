@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from typing import Optional, Callable
 from src.excel.reader import ExcelReader
+from src.gui.theme import COLOR_WHITE, COLOR_TEXT_DARK, COLOR_BUTTON_BLUE
 
 
 class ExcelPanel:
@@ -36,7 +37,8 @@ class ExcelPanel:
         self.import_btn = ttk.Button(
             self.parent,
             text="Import Excel",
-            command=self._on_import_excel
+            command=self._on_import_excel,
+            style="Custom.TButton"
         )
         self.import_btn.pack(side=tk.LEFT, padx=5)
         
@@ -60,13 +62,18 @@ class ExcelPanel:
         self.sheet_var.trace_add('write', self._on_sheet_changed)
         
         # Headers display
-        self.headers_frame = ttk.LabelFrame(self.parent, text="Column Headers", padding="5")
+        self.headers_frame = ttk.LabelFrame(self.parent, text="Column Headers", padding="5", style="Styled.TLabelframe")
         self.headers_frame.pack(side=tk.LEFT, padx=(10, 5), fill=tk.Y)
         
         self.headers_listbox = tk.Listbox(
             self.headers_frame,
             height=5,
-            width=30
+            width=30,
+            font=('TkDefaultFont', 10),
+            bg=COLOR_WHITE,
+            fg=COLOR_TEXT_DARK,
+            selectbackground=COLOR_BUTTON_BLUE,
+            selectforeground='white'
         )
         self.headers_listbox.pack(fill=tk.BOTH, expand=True)
         

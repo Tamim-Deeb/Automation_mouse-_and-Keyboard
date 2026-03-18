@@ -4,6 +4,7 @@ from tkinter import ttk, messagebox
 from typing import Optional, Callable, List
 from src.workflow.models import Workflow, WorkflowStep, StepType
 from src.gui.step_editors import AddStepDialog, StepEditorDialog
+from src.gui.theme import COLOR_WHITE, COLOR_TEXT_DARK, COLOR_BUTTON_BLUE, COLOR_HIGHLIGHT_GREEN
 
 
 class WorkflowPanel:
@@ -43,7 +44,12 @@ class WorkflowPanel:
             list_frame,
             yscrollcommand=scrollbar.set,
             selectmode=tk.SINGLE,
-            height=15
+            height=15,
+            font=('TkDefaultFont', 10),
+            bg=COLOR_WHITE,
+            fg=COLOR_TEXT_DARK,
+            selectbackground=COLOR_BUTTON_BLUE,
+            selectforeground='white'
         )
         self.step_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.step_listbox.yview)
@@ -60,7 +66,8 @@ class WorkflowPanel:
             button_frame,
             text="Add Step",
             command=self._on_add_step,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         ttk.Separator(button_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
@@ -70,7 +77,8 @@ class WorkflowPanel:
             button_frame,
             text="Move Up",
             command=self._on_move_up,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         # Move Down button
@@ -78,7 +86,8 @@ class WorkflowPanel:
             button_frame,
             text="Move Down",
             command=self._on_move_down,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         ttk.Separator(button_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
@@ -88,7 +97,8 @@ class WorkflowPanel:
             button_frame,
             text="Delete Step",
             command=self._on_delete_step,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         # Clear All button
@@ -96,7 +106,8 @@ class WorkflowPanel:
             button_frame,
             text="Clear All",
             command=self._on_clear_all,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
     
     def _on_selection_changed(self, event) -> None:
@@ -137,6 +148,9 @@ class WorkflowPanel:
                 
                 # Update display
                 self._update_display()
+                
+                # Highlight the new step
+                self._highlight_new_step(insert_position)
                 
                 # Select the new step
                 self.selected_step_index = insert_position
@@ -317,6 +331,19 @@ class WorkflowPanel:
                     idx = i + j
                     if idx < total:
                         self.step_listbox.itemconfigure(idx, bg=color)
+    
+    def _highlight_new_step(self, step_index: int) -> None:
+        """
+        Highlight a newly added step with a green flash animation.
+        
+        Args:
+            step_index: Index of the newly added step
+        """
+        # Set the new step's background to highlight green
+        self.step_listbox.itemconfigure(step_index, bg=COLOR_HIGHLIGHT_GREEN)
+        
+        # Schedule a callback to reset the coloring after 500ms
+        self.step_listbox.after(500, self._apply_condition_coloring)
 
     def add_step(self, step: WorkflowStep) -> None:
         """

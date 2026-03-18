@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Optional, Callable, Dict
 from src.workflow.models import StepType, Hotkey
+from src.gui.theme import center_dialog
 
 
 class StepEditorDialog:
@@ -45,6 +46,7 @@ class StepEditorDialog:
         self.params: Dict = {}
         
         self._create_widgets()
+        center_dialog(self.dialog)
     
     def _create_widgets(self) -> None:
         """Create form widgets based on step type"""
@@ -83,8 +85,8 @@ class StepEditorDialog:
         button_frame = ttk.Frame(container)
         button_frame.pack(pady=20)
         
-        ttk.Button(button_frame, text="Save", command=self._on_save).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Cancel", command=self.dialog.destroy).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Save", command=self._on_save, style="Custom.TButton").pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.dialog.destroy, style="Custom.TButton").pack(side=tk.LEFT, padx=5)
     
     def _create_coordinate_fields(self, container: ttk.Frame) -> None:
         """Create X and Y coordinate fields"""
@@ -101,7 +103,8 @@ class StepEditorDialog:
             ttk.Button(
                 x_frame,
                 text="Pick",
-                command=lambda: self.on_pick_coords(self._on_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
         
         # Y coordinate
@@ -119,6 +122,12 @@ class StepEditorDialog:
         
         self.y_entry.delete(0, tk.END)
         self.y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
     
     def _create_drag_coordinate_fields(self, container: ttk.Frame) -> None:
         """Create start and end coordinate fields for click_and_move step"""
@@ -133,7 +142,8 @@ class StepEditorDialog:
         if self.on_pick_coords:
             ttk.Button(
                 start_x_frame, text="Pick",
-                command=lambda: self.on_pick_coords(self._on_start_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_start_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
 
         start_y_frame = ttk.Frame(container)
@@ -153,7 +163,8 @@ class StepEditorDialog:
         if self.on_pick_coords:
             ttk.Button(
                 end_x_frame, text="Pick",
-                command=lambda: self.on_pick_coords(self._on_end_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_end_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
 
         end_y_frame = ttk.Frame(container)
@@ -168,6 +179,12 @@ class StepEditorDialog:
         self.start_x_entry.insert(0, str(x))
         self.start_y_entry.delete(0, tk.END)
         self.start_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
 
     def _on_end_coords_picked(self, x: int, y: int) -> None:
         """Handle coordinate picker callback for end position"""
@@ -175,6 +192,12 @@ class StepEditorDialog:
         self.end_x_entry.insert(0, str(x))
         self.end_y_entry.delete(0, tk.END)
         self.end_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
 
     def _create_text_field(self, container: ttk.Frame) -> None:
         """Create text field for type_text step"""
@@ -257,7 +280,8 @@ class StepEditorDialog:
         if self.on_pick_coords:
             ttk.Button(
                 start_x_frame, text="Pick",
-                command=lambda: self.on_pick_coords(self._on_screen_start_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_screen_start_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
 
         start_y_frame = ttk.Frame(container)
@@ -277,7 +301,8 @@ class StepEditorDialog:
         if self.on_pick_coords:
             ttk.Button(
                 end_x_frame, text="Pick",
-                command=lambda: self.on_pick_coords(self._on_screen_end_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_screen_end_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
 
         end_y_frame = ttk.Frame(container)
@@ -302,6 +327,12 @@ class StepEditorDialog:
         self.screen_start_x_entry.insert(0, str(x))
         self.screen_start_y_entry.delete(0, tk.END)
         self.screen_start_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
 
     def _on_screen_end_coords_picked(self, x: int, y: int) -> None:
         """Handle coordinate picker callback for screen loaded end position"""
@@ -309,6 +340,12 @@ class StepEditorDialog:
         self.screen_end_x_entry.insert(0, str(x))
         self.screen_end_y_entry.delete(0, tk.END)
         self.screen_end_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
 
     def _create_condition_fields(self, container: ttk.Frame) -> None:
         """Create fields for condition step: Equal checkbox, compare word, step count"""
@@ -485,11 +522,12 @@ class AddStepDialog:
         
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Add Step")
-        self.dialog.geometry("300x450")
+        self.dialog.geometry("320x580")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
         self._create_widgets()
+        center_dialog(self.dialog)
     
     def _create_widgets(self) -> None:
         """Create step type selection widgets"""
@@ -523,7 +561,8 @@ class AddStepDialog:
                 container,
                 text=label,
                 width=30,
-                command=lambda st=step_type: self._on_step_selected(st)
+                command=lambda st=step_type: self._on_step_selected(st),
+                style="Custom.TButton"
             )
             btn.pack(pady=5)
         
@@ -532,7 +571,8 @@ class AddStepDialog:
             container,
             text="Cancel",
             width=30,
-            command=self.dialog.destroy
+            command=self.dialog.destroy,
+            style="Custom.TButton"
         ).pack(pady=(20, 0))
     
     def _on_step_selected(self, step_type: StepType) -> None:

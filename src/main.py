@@ -13,6 +13,7 @@ from src.gui.excel_panel import ExcelPanel
 from src.gui.workflow_panel import WorkflowPanel
 from src.gui.execution_panel import ExecutionPanel
 from src.workflow.serializer import WorkflowSerializer
+from src.gui.theme import setup_theme
 
 
 def is_frozen() -> bool:
@@ -69,6 +70,9 @@ class MainApp:
         self.data_source: Optional[ExcelDataSource] = None
         self.session: Optional[ExecutionSession] = None
         self.serializer = WorkflowSerializer()
+        
+        # Setup theme before creating UI
+        setup_theme(root)
         
         self._create_ui()
         self._register_step_handlers()
