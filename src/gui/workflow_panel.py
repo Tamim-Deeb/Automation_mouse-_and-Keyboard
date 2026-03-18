@@ -255,9 +255,11 @@ class WorkflowPanel:
     def _update_display(self) -> None:
         """Update the step list display"""
         self.step_listbox.delete(0, tk.END)
-        
+
         for step in self.steps:
             self.step_listbox.insert(tk.END, self._format_step(step))
+
+        self._apply_condition_coloring()
     
     def _format_step(self, step: WorkflowStep) -> str:
         """Format a step for display in the list"""
@@ -285,11 +287,37 @@ class WorkflowPanel:
             params = f"[{column}] ({mode})"
         elif step.type == StepType.SCREEN_LOADED:
             params = f"({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) \u2192 ({step.params.get('end_x', '')}, {step.params.get('end_y', '')}) [max: {step.params.get('max_tries', '')}]"
+        elif step.type == StepType.CONDITION:
+            word = step.params.get('compare_word', '')
+            op = "==" if step.params.get('is_equal', True) else "!="
+            count = step.params.get('step_count', 1)
+            params = f"clipboard {op} '{word}' \u2192 {count} steps"
         else:
             params = ""
         
         return f"{step.order + 1}. {step_type} {params}"
     
+    def _apply_condition_coloring(self) -> None:
+        """Apply blue/yellow background coloring to steps governed by Condition steps"""
+        total = len(self.steps)
+
+        # Reset all backgrounds first
+        for i in range(total):
+            self.step_listbox.itemconfigure(i, bg="white")
+
+        # Apply coloring — process in order so inner conditions overlay outer ones
+        for i, step in enumerate(self.steps):
+            if step.type == StepType.CONDITION:
+                is_equal = step.params.get("is_equal", True)
+                step_count = step.params.get("step_count", 1)
+                color = "#CCE5FF" if is_equal else "#FFFFCC"
+
+                # Color the next step_count rows (clamped to available)
+                for j in range(1, step_count + 1):
+                    idx = i + j
+                    if idx < total:
+                        self.step_listbox.itemconfigure(idx, bg=color)
+
     def add_step(self, step: WorkflowStep) -> None:
         """
         Add a step to the workflow.

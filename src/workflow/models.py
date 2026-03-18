@@ -17,6 +17,7 @@ class StepType(str, Enum):
     CLICK_AND_MOVE = "click_and_move"
     WRITE_TO_EXCEL = "write_to_excel"
     SCREEN_LOADED = "screen_loaded"
+    CONDITION = "condition"
 
 
 class ExecutionStatus(str, Enum):
@@ -105,6 +106,18 @@ class WorkflowStep:
                 max_tries = self.params["max_tries"]
                 if not isinstance(max_tries, int) or max_tries < 1:
                     errors.append("Screen-loaded step requires 'max_tries' parameter (integer >= 1)")
+
+        elif self.type == StepType.CONDITION:
+            if "compare_word" not in self.params or not isinstance(self.params["compare_word"], str):
+                errors.append("Condition step requires 'compare_word' parameter (string)")
+            if "is_equal" not in self.params or not isinstance(self.params["is_equal"], bool):
+                errors.append("Condition step requires 'is_equal' parameter (boolean)")
+            if "step_count" not in self.params:
+                errors.append("Condition step requires 'step_count' parameter")
+            else:
+                step_count = self.params["step_count"]
+                if not isinstance(step_count, int) or step_count < 1:
+                    errors.append("Condition step requires 'step_count' parameter (integer >= 1)")
 
         return errors
 

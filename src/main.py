@@ -265,6 +265,41 @@ class MainApp:
             if not screen_loaded and session.status == "running":
                 session.stop()
 
+        def condition_handler(step, session, row_data):
+            """Handler for condition step - evaluates clipboard against compare word"""
+            compare_word = step.params["compare_word"]
+            is_equal = step.params["is_equal"]
+            step_count = step.params["step_count"]
+
+            clipboard_content = self.clipboard.paste()
+            match = (clipboard_content == compare_word)
+
+            # Determine if condition is true
+            condition_true = match if is_equal else not match
+
+            # Log the evaluation
+            op = "==" if is_equal else "!="
+            result_str = "true" if condition_true else "false"
+            from src.action_logging.action_logger import ActionLogger
+            if hasattr(self, 'execution_panel') and self.execution_panel.executor:
+                executor = self.execution_panel.executor
+                if executor.logger:
+                    from src.workflow.models import LogEntry
+                    entry = LogEntry(
+                        timestamp=datetime.utcnow(),
+                        row=session.current_row,
+                        step_type="condition",
+                        detail=f"Condition: clipboard('{clipboard_content}') {op} '{compare_word}' = {result_str}",
+                        dry_run=session.dry_run
+                    )
+                    session.add_log_entry(entry)
+                    executor.logger.log(entry)
+
+            if not condition_true:
+                # Set skip counter on the executor
+                if hasattr(self, 'execution_panel') and self.execution_panel.executor:
+                    self.execution_panel.executor.skip_remaining = step_count
+
         register_step_handler(StepType.CLICK, click_handler)
         register_step_handler(StepType.DOUBLE_CLICK, double_click_handler)
         register_step_handler(StepType.TYPE_TEXT, type_text_handler)
@@ -275,6 +310,7 @@ class MainApp:
         register_step_handler(StepType.CLICK_AND_MOVE, click_and_move_handler)
         register_step_handler(StepType.WRITE_TO_EXCEL, write_to_excel_handler)
         register_step_handler(StepType.SCREEN_LOADED, screen_loaded_handler)
+        register_step_handler(StepType.CONDITION, condition_handler)
     
     # Excel panel callback
     def _on_excel_data_loaded(self, headers: list[str], row_count: int) -> None:

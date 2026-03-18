@@ -34,6 +34,8 @@ class StepEditorDialog:
             dialog_height = 350
         elif step_type == StepType.SCREEN_LOADED:
             dialog_height = 500
+        elif step_type == StepType.CONDITION:
+            dialog_height = 350
         else:
             dialog_height = 300
         self.dialog.geometry(f"400x{dialog_height}")
@@ -74,6 +76,8 @@ class StepEditorDialog:
             self._create_write_to_excel_fields(container)
         elif self.step_type == StepType.SCREEN_LOADED:
             self._create_screen_loaded_fields(container)
+        elif self.step_type == StepType.CONDITION:
+            self._create_condition_fields(container)
 
         # Button frame
         button_frame = ttk.Frame(container)
@@ -306,6 +310,29 @@ class StepEditorDialog:
         self.screen_end_y_entry.delete(0, tk.END)
         self.screen_end_y_entry.insert(0, str(y))
 
+    def _create_condition_fields(self, container: ttk.Frame) -> None:
+        """Create fields for condition step: Equal checkbox, compare word, step count"""
+        # Equal checkbox
+        self.is_equal_var = tk.BooleanVar(value=True)
+        equal_frame = ttk.Frame(container)
+        equal_frame.pack(fill=tk.X, pady=5)
+        ttk.Checkbutton(
+            equal_frame, text="Equal", variable=self.is_equal_var
+        ).pack(side=tk.LEFT)
+
+        # Compare word
+        ttk.Label(container, text="Compare Word:").pack(anchor=tk.W, pady=(10, 0))
+        ttk.Label(container, text="(leave empty to compare against empty clipboard)", font=('TkDefaultFont', 8)).pack(anchor=tk.W)
+        self.compare_word_entry = ttk.Entry(container, width=40)
+        self.compare_word_entry.pack(fill=tk.X, pady=5)
+
+        # Step count
+        ttk.Label(container, text="Number of steps to govern:").pack(anchor=tk.W, pady=(10, 0))
+        ttk.Label(container, text="(minimum: 1)", font=('TkDefaultFont', 8)).pack(anchor=tk.W)
+        self.step_count_entry = ttk.Entry(container, width=15)
+        self.step_count_entry.pack(pady=5)
+        self.step_count_entry.insert(0, "1")
+
     def _on_save(self) -> None:
         """Handle save button click"""
         # Validate and collect parameters based on step type
@@ -394,6 +421,21 @@ class StepEditorDialog:
                 tk.messagebox.showerror("Validation Error", "All coordinate fields and max tries must be valid numbers")
                 return
 
+        elif self.step_type == StepType.CONDITION:
+            try:
+                step_count = int(self.step_count_entry.get())
+                if step_count < 1:
+                    tk.messagebox.showerror("Validation Error", "Step count must be at least 1")
+                    return
+                self.params = {
+                    "compare_word": self.compare_word_entry.get(),
+                    "is_equal": self.is_equal_var.get(),
+                    "step_count": step_count
+                }
+            except ValueError:
+                tk.messagebox.showerror("Validation Error", "Step count must be a valid number")
+                return
+
         # Call save callback
         self.on_save(self.params)
         self.dialog.destroy()
@@ -443,7 +485,7 @@ class AddStepDialog:
         
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Add Step")
-        self.dialog.geometry("300x400")
+        self.dialog.geometry("300x450")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
@@ -473,6 +515,7 @@ class AddStepDialog:
             (StepType.CLICK_AND_MOVE, "Click And Move"),
             (StepType.WRITE_TO_EXCEL, "Write To Excel"),
             (StepType.SCREEN_LOADED, "Screen Loaded"),
+            (StepType.CONDITION, "Condition"),
         ]
         
         for step_type, label in step_types:

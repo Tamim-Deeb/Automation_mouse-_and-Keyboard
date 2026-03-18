@@ -17,6 +17,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-09
 - Python 3.10+ + openpyxl (Excel read/write), pyperclip (clipboard), tkinter (GUI), pyautogui (014-write-to-excel-step)
 - Excel .xlsx files (openpyxl) (014-write-to-excel-step)
 - Python 3.10+ + pyautogui (mouse drag + Ctrl+C), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch) (015-screen-loaded-step)
+- Python 3.10+ + pyautogui (mouse/keyboard), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch) (016-condition-step)
 
 ## Project Structure
 
@@ -34,9 +35,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
+- 016-condition-step: Added Python 3.10+ + pyautogui (mouse/keyboard), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch)
 - 015-screen-loaded-step: Added Python 3.10+ + pyautogui (mouse drag + Ctrl+C), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch)
 - 014-write-to-excel-step: Added Python 3.10+ + openpyxl (Excel read/write), pyperclip (clipboard), tkinter (GUI), pyautogui
-- 013-click-and-move-step: Added Python 3.10+ + pyautogui (mouse automation), tkinter (GUI), pynput (kill-switch)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
