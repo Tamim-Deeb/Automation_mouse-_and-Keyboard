@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Optional, Callable, Dict
 from src.workflow.models import StepType, Hotkey
+from src.gui.theme import center_dialog
 
 
 class StepEditorDialog:
@@ -28,7 +29,16 @@ class StepEditorDialog:
         
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(f"Edit {step_type.value.replace('_', ' ').title()} Step")
-        dialog_height = 450 if step_type == StepType.CLICK_AND_MOVE else 300
+        if step_type == StepType.CLICK_AND_MOVE:
+            dialog_height = 450
+        elif step_type == StepType.WRITE_TO_EXCEL:
+            dialog_height = 350
+        elif step_type == StepType.SCREEN_LOADED:
+            dialog_height = 500
+        elif step_type == StepType.CONDITION:
+            dialog_height = 350
+        else:
+            dialog_height = 300
         self.dialog.geometry(f"400x{dialog_height}")
         self.dialog.transient(parent)
         self.dialog.grab_set()
@@ -36,6 +46,7 @@ class StepEditorDialog:
         self.params: Dict = {}
         
         self._create_widgets()
+        center_dialog(self.dialog)
     
     def _create_widgets(self) -> None:
         """Create form widgets based on step type"""
@@ -63,13 +74,19 @@ class StepEditorDialog:
             self._create_hotkey_field(container)
         elif self.step_type == StepType.CLICK_AND_MOVE:
             self._create_drag_coordinate_fields(container)
+        elif self.step_type == StepType.WRITE_TO_EXCEL:
+            self._create_write_to_excel_fields(container)
+        elif self.step_type == StepType.SCREEN_LOADED:
+            self._create_screen_loaded_fields(container)
+        elif self.step_type == StepType.CONDITION:
+            self._create_condition_fields(container)
 
         # Button frame
         button_frame = ttk.Frame(container)
         button_frame.pack(pady=20)
         
-        ttk.Button(button_frame, text="Save", command=self._on_save).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Cancel", command=self.dialog.destroy).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Save", command=self._on_save, style="Custom.TButton").pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.dialog.destroy, style="Custom.TButton").pack(side=tk.LEFT, padx=5)
     
     def _create_coordinate_fields(self, container: ttk.Frame) -> None:
         """Create X and Y coordinate fields"""
@@ -86,7 +103,8 @@ class StepEditorDialog:
             ttk.Button(
                 x_frame,
                 text="Pick",
-                command=lambda: self.on_pick_coords(self._on_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
         
         # Y coordinate
@@ -104,6 +122,12 @@ class StepEditorDialog:
         
         self.y_entry.delete(0, tk.END)
         self.y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
     
     def _create_drag_coordinate_fields(self, container: ttk.Frame) -> None:
         """Create start and end coordinate fields for click_and_move step"""
@@ -118,7 +142,8 @@ class StepEditorDialog:
         if self.on_pick_coords:
             ttk.Button(
                 start_x_frame, text="Pick",
-                command=lambda: self.on_pick_coords(self._on_start_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_start_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
 
         start_y_frame = ttk.Frame(container)
@@ -138,7 +163,8 @@ class StepEditorDialog:
         if self.on_pick_coords:
             ttk.Button(
                 end_x_frame, text="Pick",
-                command=lambda: self.on_pick_coords(self._on_end_coords_picked)
+                command=lambda: self.on_pick_coords(self._on_end_coords_picked),
+                style="Custom.TButton"
             ).pack(side=tk.LEFT, padx=5)
 
         end_y_frame = ttk.Frame(container)
@@ -153,6 +179,12 @@ class StepEditorDialog:
         self.start_x_entry.insert(0, str(x))
         self.start_y_entry.delete(0, tk.END)
         self.start_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
 
     def _on_end_coords_picked(self, x: int, y: int) -> None:
         """Handle coordinate picker callback for end position"""
@@ -160,6 +192,12 @@ class StepEditorDialog:
         self.end_x_entry.insert(0, str(x))
         self.end_y_entry.delete(0, tk.END)
         self.end_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
 
     def _create_text_field(self, container: ttk.Frame) -> None:
         """Create text field for type_text step"""
@@ -205,6 +243,133 @@ class StepEditorDialog:
         self.key_entry = ttk.Entry(container, width=30)
         self.key_entry.pack(fill=tk.X, pady=(0, 5))
     
+    def _create_write_to_excel_fields(self, container: ttk.Frame) -> None:
+        """Create column dropdown and write mode selector for write_to_excel step"""
+        # Column dropdown
+        ttk.Label(container, text="Target Column:").pack(anchor=tk.W, pady=(5, 0))
+
+        self.write_column_var = tk.StringVar()
+        self.write_column_dropdown = ttk.OptionMenu(container, self.write_column_var, "", *[])
+        self.write_column_dropdown.pack(fill=tk.X, pady=5)
+
+        # Write mode selector
+        ttk.Label(container, text="Write Mode:").pack(anchor=tk.W, pady=(10, 0))
+
+        self.write_mode_var = tk.StringVar(value="mark_done")
+
+        mode_frame = ttk.Frame(container)
+        mode_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Radiobutton(
+            mode_frame, text="Mark Done (x)", variable=self.write_mode_var, value="mark_done"
+        ).pack(anchor=tk.W)
+        ttk.Radiobutton(
+            mode_frame, text="Paste Clipboard", variable=self.write_mode_var, value="paste_clipboard"
+        ).pack(anchor=tk.W)
+
+    def _create_screen_loaded_fields(self, container: ttk.Frame) -> None:
+        """Create start and end coordinate fields and max tries for screen_loaded step"""
+        # Start position
+        ttk.Label(container, text="Start Position:", font=('TkDefaultFont', 9, 'bold')).pack(anchor=tk.W, pady=(5, 0))
+
+        start_x_frame = ttk.Frame(container)
+        start_x_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(start_x_frame, text="X:").pack(side=tk.LEFT)
+        self.screen_start_x_entry = ttk.Entry(start_x_frame, width=15)
+        self.screen_start_x_entry.pack(side=tk.LEFT, padx=5)
+        if self.on_pick_coords:
+            ttk.Button(
+                start_x_frame, text="Pick",
+                command=lambda: self.on_pick_coords(self._on_screen_start_coords_picked),
+                style="Custom.TButton"
+            ).pack(side=tk.LEFT, padx=5)
+
+        start_y_frame = ttk.Frame(container)
+        start_y_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(start_y_frame, text="Y:").pack(side=tk.LEFT)
+        self.screen_start_y_entry = ttk.Entry(start_y_frame, width=15)
+        self.screen_start_y_entry.pack(side=tk.LEFT, padx=5)
+
+        # End position
+        ttk.Label(container, text="End Position:", font=('TkDefaultFont', 9, 'bold')).pack(anchor=tk.W, pady=(10, 0))
+
+        end_x_frame = ttk.Frame(container)
+        end_x_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(end_x_frame, text="X:").pack(side=tk.LEFT)
+        self.screen_end_x_entry = ttk.Entry(end_x_frame, width=15)
+        self.screen_end_x_entry.pack(side=tk.LEFT, padx=5)
+        if self.on_pick_coords:
+            ttk.Button(
+                end_x_frame, text="Pick",
+                command=lambda: self.on_pick_coords(self._on_screen_end_coords_picked),
+                style="Custom.TButton"
+            ).pack(side=tk.LEFT, padx=5)
+
+        end_y_frame = ttk.Frame(container)
+        end_y_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(end_y_frame, text="Y:").pack(side=tk.LEFT)
+        self.screen_end_y_entry = ttk.Entry(end_y_frame, width=15)
+        self.screen_end_y_entry.pack(side=tk.LEFT, padx=5)
+
+        # Max tries
+        ttk.Label(container, text="Max Tries:", font=('TkDefaultFont', 9, 'bold')).pack(anchor=tk.W, pady=(10, 0))
+        ttk.Label(container, text="(minimum: 1)", font=('TkDefaultFont', 8)).pack(anchor=tk.W)
+
+        max_tries_frame = ttk.Frame(container)
+        max_tries_frame.pack(fill=tk.X, pady=2)
+        self.max_tries_entry = ttk.Entry(max_tries_frame, width=15)
+        self.max_tries_entry.pack(side=tk.LEFT)
+        self.max_tries_entry.insert(0, "10")
+
+    def _on_screen_start_coords_picked(self, x: int, y: int) -> None:
+        """Handle coordinate picker callback for screen loaded start position"""
+        self.screen_start_x_entry.delete(0, tk.END)
+        self.screen_start_x_entry.insert(0, str(x))
+        self.screen_start_y_entry.delete(0, tk.END)
+        self.screen_start_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
+
+    def _on_screen_end_coords_picked(self, x: int, y: int) -> None:
+        """Handle coordinate picker callback for screen loaded end position"""
+        self.screen_end_x_entry.delete(0, tk.END)
+        self.screen_end_x_entry.insert(0, str(x))
+        self.screen_end_y_entry.delete(0, tk.END)
+        self.screen_end_y_entry.insert(0, str(y))
+        
+        # Re-center and focus dialog after coordinate picking
+        self.dialog.deiconify()
+        self.dialog.lift()
+        self.dialog.focus_force()
+        center_dialog(self.dialog)
+
+    def _create_condition_fields(self, container: ttk.Frame) -> None:
+        """Create fields for condition step: Equal checkbox, compare word, step count"""
+        # Equal checkbox
+        self.is_equal_var = tk.BooleanVar(value=True)
+        equal_frame = ttk.Frame(container)
+        equal_frame.pack(fill=tk.X, pady=5)
+        ttk.Checkbutton(
+            equal_frame, text="Equal", variable=self.is_equal_var
+        ).pack(side=tk.LEFT)
+
+        # Compare word
+        ttk.Label(container, text="Compare Word:").pack(anchor=tk.W, pady=(10, 0))
+        ttk.Label(container, text="(leave empty to compare against empty clipboard)", font=('TkDefaultFont', 8)).pack(anchor=tk.W)
+        self.compare_word_entry = ttk.Entry(container, width=40)
+        self.compare_word_entry.pack(fill=tk.X, pady=5)
+
+        # Step count
+        ttk.Label(container, text="Number of steps to govern:").pack(anchor=tk.W, pady=(10, 0))
+        ttk.Label(container, text="(minimum: 1)", font=('TkDefaultFont', 8)).pack(anchor=tk.W)
+        self.step_count_entry = ttk.Entry(container, width=15)
+        self.step_count_entry.pack(pady=5)
+        self.step_count_entry.insert(0, "1")
+
     def _on_save(self) -> None:
         """Handle save button click"""
         # Validate and collect parameters based on step type
@@ -269,7 +434,45 @@ class StepEditorDialog:
             else:
                 # Use dropdown selection
                 self.params = {"hotkey": self.hotkey_var.get()}
-        
+
+        elif self.step_type == StepType.WRITE_TO_EXCEL:
+            column = self.write_column_var.get()
+            if not column:
+                tk.messagebox.showerror("Validation Error", "Please select a target column")
+                return
+            write_mode = self.write_mode_var.get()
+            self.params = {"column_name": column, "write_mode": write_mode}
+
+        elif self.step_type == StepType.SCREEN_LOADED:
+            try:
+                start_x = int(self.screen_start_x_entry.get())
+                start_y = int(self.screen_start_y_entry.get())
+                end_x = int(self.screen_end_x_entry.get())
+                end_y = int(self.screen_end_y_entry.get())
+                max_tries = int(self.max_tries_entry.get())
+                if max_tries < 1:
+                    tk.messagebox.showerror("Validation Error", "Max tries must be at least 1")
+                    return
+                self.params = {"start_x": start_x, "start_y": start_y, "end_x": end_x, "end_y": end_y, "max_tries": max_tries}
+            except ValueError:
+                tk.messagebox.showerror("Validation Error", "All coordinate fields and max tries must be valid numbers")
+                return
+
+        elif self.step_type == StepType.CONDITION:
+            try:
+                step_count = int(self.step_count_entry.get())
+                if step_count < 1:
+                    tk.messagebox.showerror("Validation Error", "Step count must be at least 1")
+                    return
+                self.params = {
+                    "compare_word": self.compare_word_entry.get(),
+                    "is_equal": self.is_equal_var.get(),
+                    "step_count": step_count
+                }
+            except ValueError:
+                tk.messagebox.showerror("Validation Error", "Step count must be a valid number")
+                return
+
         # Call save callback
         self.on_save(self.params)
         self.dialog.destroy()
@@ -284,11 +487,20 @@ class StepEditorDialog:
         if self.step_type == StepType.INSERT_COLUMN_VALUE:
             menu = self.column_dropdown["menu"]
             menu.delete(0, tk.END)
-            
+
             for column in columns:
                 menu.add_command(
                     label=column,
                     command=lambda c=column: self.column_var.set(c)
+                )
+        elif self.step_type == StepType.WRITE_TO_EXCEL:
+            menu = self.write_column_dropdown["menu"]
+            menu.delete(0, tk.END)
+
+            for column in columns:
+                menu.add_command(
+                    label=column,
+                    command=lambda c=column: self.write_column_var.set(c)
                 )
 
 
@@ -310,11 +522,12 @@ class AddStepDialog:
         
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("Add Step")
-        self.dialog.geometry("300x400")
+        self.dialog.geometry("320x580")
         self.dialog.transient(parent)
         self.dialog.grab_set()
         
         self._create_widgets()
+        center_dialog(self.dialog)
     
     def _create_widgets(self) -> None:
         """Create step type selection widgets"""
@@ -338,6 +551,9 @@ class AddStepDialog:
             (StepType.PRESS_HOTKEY, "Press Hotkey"),
             (StepType.COPY_FIELD, "Copy Field"),
             (StepType.CLICK_AND_MOVE, "Click And Move"),
+            (StepType.WRITE_TO_EXCEL, "Write To Excel"),
+            (StepType.SCREEN_LOADED, "Screen Loaded"),
+            (StepType.CONDITION, "Condition"),
         ]
         
         for step_type, label in step_types:
@@ -345,7 +561,8 @@ class AddStepDialog:
                 container,
                 text=label,
                 width=30,
-                command=lambda st=step_type: self._on_step_selected(st)
+                command=lambda st=step_type: self._on_step_selected(st),
+                style="Custom.TButton"
             )
             btn.pack(pady=5)
         
@@ -354,7 +571,8 @@ class AddStepDialog:
             container,
             text="Cancel",
             width=30,
-            command=self.dialog.destroy
+            command=self.dialog.destroy,
+            style="Custom.TButton"
         ).pack(pady=(20, 0))
     
     def _on_step_selected(self, step_type: StepType) -> None:

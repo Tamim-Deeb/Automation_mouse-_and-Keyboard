@@ -13,6 +13,7 @@ from src.gui.excel_panel import ExcelPanel
 from src.gui.workflow_panel import WorkflowPanel
 from src.gui.execution_panel import ExecutionPanel
 from src.workflow.serializer import WorkflowSerializer
+from src.gui.theme import setup_theme
 
 
 def is_frozen() -> bool:
@@ -69,6 +70,9 @@ class MainApp:
         self.data_source: Optional[ExcelDataSource] = None
         self.session: Optional[ExecutionSession] = None
         self.serializer = WorkflowSerializer()
+        
+        # Setup theme before creating UI
+        setup_theme(root)
         
         self._create_ui()
         self._register_step_handlers()
@@ -149,12 +153,14 @@ class MainApp:
         from src.automation.keyboard import KeyboardAutomation
         from src.automation.wait import WaitModule
         from src.automation.clipboard import ClipboardModule
+        from src.excel.writer import ExcelWriter
         
         # Create automation instances
         self.mouse = MouseAutomation(delay_ms=0)
         self.keyboard = KeyboardAutomation(inter_key_delay_ms=0)
         self.wait = WaitModule()
         self.clipboard = ClipboardModule()
+        self.excel_writer = ExcelWriter()
         
         # Register handlers
         def click_handler(step, session, row_data):
@@ -200,6 +206,104 @@ class MainApp:
                 step.params["end_x"], step.params["end_y"]
             )
 
+        def write_to_excel_handler(step, session, row_data):
+            write_mode = step.params["write_mode"]
+            column_name = step.params["column_name"]
+            if write_mode == "mark_done":
+                value = "x"
+            else:
+                value = self.clipboard.paste()
+            excel_row = session.current_row + 1  # header is row 1, data starts row 2
+            self.excel_writer.write_cell(
+                session.data_source.file_path,
+                session.data_source.sheet_name,
+                excel_row,
+                column_name,
+                value
+            )
+
+        def screen_loaded_handler(step, session, row_data):
+            """Handler for screen_loaded step - waits for text to appear on screen"""
+            start_x = step.params["start_x"]
+            start_y = step.params["start_y"]
+            end_x = step.params["end_x"]
+            end_y = step.params["end_y"]
+            max_tries = step.params["max_tries"]
+
+            screen_loaded = False
+            for attempt in range(max_tries):
+                # Check if session has been stopped (e.g., by kill-switch)
+                if session.status != "running":
+                    return
+
+                # Clear clipboard
+                self.clipboard.clear()
+                time.sleep(0.05)  # 50ms delay
+
+                # Drag to select text
+                self.mouse.drag(start_x, start_y, end_x, end_y)
+                time.sleep(0.05)  # 50ms delay
+
+                # Copy selected text
+                pyautogui.hotkey('ctrl', 'c')
+                time.sleep(0.05)  # 50ms delay
+
+                # Check if clipboard has content
+                clipboard_content = self.clipboard.paste().strip()
+                if clipboard_content:
+                    screen_loaded = True
+                    break
+
+                # Wait before retry (1 second, interruptible by kill-switch)
+                if attempt < max_tries - 1:
+                    kill_switch = self.execution_panel.kill_switch
+                    if kill_switch:
+                        was_interrupted = self.wait.interruptible_sleep(1000, kill_switch.event)
+                        if was_interrupted:
+                            session.stop()
+                            return
+                    else:
+                        self.wait.sleep(1000)
+
+            # If max tries exceeded without success, stop the workflow
+            if not screen_loaded and session.status == "running":
+                session.stop()
+
+        def condition_handler(step, session, row_data):
+            """Handler for condition step - evaluates clipboard against compare word"""
+            compare_word = step.params["compare_word"]
+            is_equal = step.params["is_equal"]
+            step_count = step.params["step_count"]
+
+            clipboard_content = self.clipboard.paste()
+            match = (clipboard_content == compare_word)
+
+            # Determine if condition is true
+            condition_true = match if is_equal else not match
+
+            # Log the evaluation
+            op = "==" if is_equal else "!="
+            result_str = "true" if condition_true else "false"
+            from src.action_logging.action_logger import ActionLogger
+            if hasattr(self, 'execution_panel') and self.execution_panel.executor:
+                executor = self.execution_panel.executor
+                if executor.logger:
+                    from src.workflow.models import LogEntry
+                    entry = LogEntry(
+                        timestamp=datetime.utcnow(),
+                        row=session.current_row,
+                        step_type="condition",
+                        detail=f"Condition: clipboard('{clipboard_content}') {op} '{compare_word}' = {result_str}",
+                        dry_run=session.dry_run
+                    )
+                    session.add_log_entry(entry)
+                    executor.logger.log(entry)
+
+            if not condition_true:
+                # Set skip counter on the executor
+                if hasattr(self, 'execution_panel') and self.execution_panel.executor:
+                    self.execution_panel.executor.skip_remaining = step_count
+
         register_step_handler(StepType.CLICK, click_handler)
         register_step_handler(StepType.DOUBLE_CLICK, double_click_handler)
         register_step_handler(StepType.TYPE_TEXT, type_text_handler)
@@ -208,6 +312,9 @@ class MainApp:
         register_step_handler(StepType.PRESS_HOTKEY, press_hotkey_handler)
         register_step_handler(StepType.COPY_FIELD, copy_field_handler)
         register_step_handler(StepType.CLICK_AND_MOVE, click_and_move_handler)
+        register_step_handler(StepType.WRITE_TO_EXCEL, write_to_excel_handler)
+        register_step_handler(StepType.SCREEN_LOADED, screen_loaded_handler)
+        register_step_handler(StepType.CONDITION, condition_handler)
     
     # Excel panel callback
     def _on_excel_data_loaded(self, headers: list[str], row_count: int) -> None:

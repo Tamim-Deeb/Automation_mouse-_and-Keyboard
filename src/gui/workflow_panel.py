@@ -4,6 +4,7 @@ from tkinter import ttk, messagebox
 from typing import Optional, Callable, List
 from src.workflow.models import Workflow, WorkflowStep, StepType
 from src.gui.step_editors import AddStepDialog, StepEditorDialog
+from src.gui.theme import COLOR_WHITE, COLOR_TEXT_DARK, COLOR_BUTTON_BLUE, COLOR_HIGHLIGHT_GREEN
 
 
 class WorkflowPanel:
@@ -43,7 +44,12 @@ class WorkflowPanel:
             list_frame,
             yscrollcommand=scrollbar.set,
             selectmode=tk.SINGLE,
-            height=15
+            height=15,
+            font=('TkDefaultFont', 10),
+            bg=COLOR_WHITE,
+            fg=COLOR_TEXT_DARK,
+            selectbackground=COLOR_BUTTON_BLUE,
+            selectforeground='white'
         )
         self.step_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.step_listbox.yview)
@@ -60,7 +66,8 @@ class WorkflowPanel:
             button_frame,
             text="Add Step",
             command=self._on_add_step,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         ttk.Separator(button_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
@@ -70,7 +77,8 @@ class WorkflowPanel:
             button_frame,
             text="Move Up",
             command=self._on_move_up,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         # Move Down button
@@ -78,7 +86,8 @@ class WorkflowPanel:
             button_frame,
             text="Move Down",
             command=self._on_move_down,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         ttk.Separator(button_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
@@ -88,7 +97,8 @@ class WorkflowPanel:
             button_frame,
             text="Delete Step",
             command=self._on_delete_step,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
         
         # Clear All button
@@ -96,7 +106,8 @@ class WorkflowPanel:
             button_frame,
             text="Clear All",
             command=self._on_clear_all,
-            width=15
+            width=15,
+            style="Custom.TButton"
         ).pack(pady=5)
     
     def _on_selection_changed(self, event) -> None:
@@ -138,6 +149,9 @@ class WorkflowPanel:
                 # Update display
                 self._update_display()
                 
+                # Highlight the new step
+                self._highlight_new_step(insert_position)
+                
                 # Select the new step
                 self.selected_step_index = insert_position
                 self.step_listbox.selection_set(insert_position)
@@ -151,11 +165,11 @@ class WorkflowPanel:
                 self.parent,
                 step_type,
                 on_save,
-                self._on_pick_coords if step_type in [StepType.CLICK, StepType.DOUBLE_CLICK, StepType.CLICK_AND_MOVE] else None
+                self._on_pick_coords if step_type in [StepType.CLICK, StepType.DOUBLE_CLICK, StepType.CLICK_AND_MOVE, StepType.SCREEN_LOADED] else None
             )
             
             # Set available columns if needed
-            if step_type == StepType.INSERT_COLUMN_VALUE and self.available_columns:
+            if step_type in [StepType.INSERT_COLUMN_VALUE, StepType.WRITE_TO_EXCEL] and self.available_columns:
                 editor.set_columns(self.available_columns)
         
         # Show add step dialog
@@ -255,9 +269,11 @@ class WorkflowPanel:
     def _update_display(self) -> None:
         """Update the step list display"""
         self.step_listbox.delete(0, tk.END)
-        
+
         for step in self.steps:
             self.step_listbox.insert(tk.END, self._format_step(step))
+
+        self._apply_condition_coloring()
     
     def _format_step(self, step: WorkflowStep) -> str:
         """Format a step for display in the list"""
@@ -279,11 +295,56 @@ class WorkflowPanel:
             params = f"[{step.params.get('hotkey', '')}]"
         elif step.type == StepType.CLICK_AND_MOVE:
             params = f"({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) \u2192 ({step.params.get('end_x', '')}, {step.params.get('end_y', '')})"
+        elif step.type == StepType.WRITE_TO_EXCEL:
+            column = step.params.get('column_name', '')
+            mode = "Mark Done" if step.params.get('write_mode', '') == "mark_done" else "Paste Clipboard"
+            params = f"[{column}] ({mode})"
+        elif step.type == StepType.SCREEN_LOADED:
+            params = f"({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) \u2192 ({step.params.get('end_x', '')}, {step.params.get('end_y', '')}) [max: {step.params.get('max_tries', '')}]"
+        elif step.type == StepType.CONDITION:
+            word = step.params.get('compare_word', '')
+            op = "==" if step.params.get('is_equal', True) else "!="
+            count = step.params.get('step_count', 1)
+            params = f"clipboard {op} '{word}' \u2192 {count} steps"
         else:
             params = ""
         
         return f"{step.order + 1}. {step_type} {params}"
     
+    def _apply_condition_coloring(self) -> None:
+        """Apply blue/yellow background coloring to steps governed by Condition steps"""
+        total = len(self.steps)
+
+        # Reset all backgrounds first
+        for i in range(total):
+            self.step_listbox.itemconfigure(i, bg="white")
+
+        # Apply coloring — process in order so inner conditions overlay outer ones
+        for i, step in enumerate(self.steps):
+            if step.type == StepType.CONDITION:
+                is_equal = step.params.get("is_equal", True)
+                step_count = step.params.get("step_count", 1)
+                color = "#CCE5FF" if is_equal else "#FFFFCC"
+
+                # Color the next step_count rows (clamped to available)
+                for j in range(1, step_count + 1):
+                    idx = i + j
+                    if idx < total:
+                        self.step_listbox.itemconfigure(idx, bg=color)
+    
+    def _highlight_new_step(self, step_index: int) -> None:
+        """
+        Highlight a newly added step with a green flash animation.
+        
+        Args:
+            step_index: Index of the newly added step
+        """
+        # Set the new step's background to highlight green
+        self.step_listbox.itemconfigure(step_index, bg=COLOR_HIGHLIGHT_GREEN)
+        
+        # Schedule a callback to reset the coloring after 500ms
+        self.step_listbox.after(500, self._apply_condition_coloring)
+
     def add_step(self, step: WorkflowStep) -> None:
         """
         Add a step to the workflow.

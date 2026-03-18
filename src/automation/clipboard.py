@@ -8,3 +8,7 @@ class ClipboardModule:
     def clear(self) -> None:
         """Clear the system clipboard by copying an empty string"""
         pyperclip.copy('')
+
+    def paste(self) -> str:
+        """Read and return the current clipboard content"""
+        return pyperclip.paste()

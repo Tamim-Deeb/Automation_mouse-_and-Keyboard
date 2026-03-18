@@ -43,8 +43,9 @@ class WorkflowExecutor:
         self.on_complete = on_complete
         self.kill_switch = kill_switch
         self.step_delay_ms = step_delay_ms
-        
+
         self._is_running = False
+        self.skip_remaining = 0
     
     def execute(self) -> None:
         """Execute the workflow"""
@@ -82,7 +83,10 @@ class WorkflowExecutor:
                     
                     # Update current row
                     self.session.current_row = row_number
-                    
+
+                    # Reset skip counter at start of each row
+                    self.skip_remaining = 0
+
                     # Execute each step for this row
                     for step in self.session.workflow.steps:
                         # Check kill-switch between steps
@@ -93,7 +97,15 @@ class WorkflowExecutor:
                         # Check if stopped
                         if self.session.status != "running":
                             break
-                        
+
+                        # Skip logic for condition steps
+                        if self.skip_remaining > 0:
+                            # Cascade skip: if skipping a CONDITION step, also skip its governed steps
+                            if step.type == StepType.CONDITION:
+                                self.skip_remaining += step.params.get("step_count", 0)
+                            self.skip_remaining -= 1
+                            continue
+
                         self._execute_step(step, row_data, row_number)
                         
                         # Apply step delay after each step (if configured)
@@ -170,8 +182,8 @@ class WorkflowExecutor:
         # Log step start
         self._log_step_start(step, row_number)
         
-        # Execute step (unless dry-run)
-        if not self.session.dry_run:
+        # Execute step (unless dry-run; condition steps always execute since they have no side effects)
+        if not self.session.dry_run or step.type == StepType.CONDITION:
             try:
                 # Special handling for WAIT steps with kill switch
                 if step.type == StepType.WAIT and self.kill_switch:
@@ -281,6 +293,17 @@ class WorkflowExecutor:
         elif step.type == StepType.PRESS_HOTKEY:
             hotkey = step.params.get('hotkey', '')
             return f"Press hotkey: [{hotkey}]"
+        elif step.type == StepType.WRITE_TO_EXCEL:
+            column = step.params.get('column_name', '')
+            mode = step.params.get('write_mode', '')
+            return f"Write to Excel: [{column}] ({mode})"
+        elif step.type == StepType.SCREEN_LOADED:
+            return f"Screen loaded: ({step.params.get('start_x', '')}, {step.params.get('start_y', '')}) → ({step.params.get('end_x', '')}, {step.params.get('end_y', '')}) [max: {step.params.get('max_tries', '')}]"
+        elif step.type == StepType.CONDITION:
+            word = step.params.get('compare_word', '')
+            op = "==" if step.params.get('is_equal', True) else "!="
+            count = step.params.get('step_count', 1)
+            return f"Condition: clipboard {op} '{word}' → {count} steps"
         else:
             return step.type.value
     

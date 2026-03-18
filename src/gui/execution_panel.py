@@ -102,7 +102,8 @@ class ExecutionPanel:
             self.parent,
             text="Start",
             command=self._on_start,
-            width=10
+            width=10,
+            style="Custom.TButton"
         )
         self.start_btn.pack(side=tk.LEFT, padx=5)
         
@@ -112,7 +113,8 @@ class ExecutionPanel:
             text="Stop",
             command=self._on_stop,
             width=10,
-            state=tk.DISABLED
+            state=tk.DISABLED,
+            style="Custom.TButton"
         )
         self.stop_btn.pack(side=tk.LEFT, padx=5)
         

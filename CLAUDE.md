@@ -14,6 +14,12 @@ Auto-generated from all feature plans. Last updated: 2026-03-09
 - Python 3.10+ + pyautogui (keyboard automation), tkinter (GUI), pynput (kill-switch) (012-custom-hotkey-input)
 - JSON workflow files (existing serializer) (012-custom-hotkey-input)
 - Python 3.10+ + pyautogui (mouse automation), tkinter (GUI), pynput (kill-switch) (013-click-and-move-step)
+- Python 3.10+ + openpyxl (Excel read/write), pyperclip (clipboard), tkinter (GUI), pyautogui (014-write-to-excel-step)
+- Excel .xlsx files (openpyxl) (014-write-to-excel-step)
+- Python 3.10+ + pyautogui (mouse drag + Ctrl+C), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch) (015-screen-loaded-step)
+- Python 3.10+ + pyautogui (mouse/keyboard), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch) (016-condition-step)
+- Python 3.10+ (existing) + kinter (stdlib, existing), ttk (stdlib, existing) — no new dependencies (017-ui-polish)
+- N/A (no new data) (017-ui-polish)
 
 ## Project Structure
 
@@ -31,9 +37,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.10+: Follow standard conventions
 
 ## Recent Changes
-- 013-click-and-move-step: Added Python 3.10+ + pyautogui (mouse automation), tkinter (GUI), pynput (kill-switch)
-- 012-custom-hotkey-input: Added Python 3.10+ + pyautogui (keyboard automation), tkinter (GUI), pynput (kill-switch)
-- 011-copy-field-step: Added Python 3.10+ (existing) + pyautogui (keyboard automation), pyperclip (clipboard clearing), tkinter (GUI)
+- 017-ui-polish: Added Python 3.10+ (existing) + kinter (stdlib, existing), ttk (stdlib, existing) — no new dependencies
+- 016-condition-step: Added Python 3.10+ + pyautogui (mouse/keyboard), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch)
+- 015-screen-loaded-step: Added Python 3.10+ + pyautogui (mouse drag + Ctrl+C), pyperclip (clipboard), tkinter (GUI), pynput (kill-switch)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

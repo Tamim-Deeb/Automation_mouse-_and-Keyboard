@@ -1,6 +1,7 @@
 """Main application window with three-panel layout"""
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from src.gui.theme import COLOR_DARK_HEADER, COLOR_LIGHT_PANEL, COLOR_TEXT_LIGHT
 
 
 class App:
@@ -28,11 +29,11 @@ class App:
     
     def _create_menu_bar(self) -> None:
         """Create the application menu bar"""
-        menubar = tk.Menu(self.root)
+        menubar = tk.Menu(self.root, bg=COLOR_DARK_HEADER, fg=COLOR_TEXT_LIGHT, activebackground=COLOR_DARK_HEADER, activeforeground=COLOR_TEXT_LIGHT)
         self.root.config(menu=menubar)
         
         # File menu
-        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu = tk.Menu(menubar, tearoff=0, bg=COLOR_DARK_HEADER, fg=COLOR_TEXT_LIGHT, activebackground=COLOR_DARK_HEADER, activeforeground=COLOR_TEXT_LIGHT)
         menubar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="New Workflow", command=self._on_new_workflow)
         file_menu.add_command(label="Open Workflow...", command=self._on_open_workflow)
@@ -42,18 +43,18 @@ class App:
         file_menu.add_command(label="Exit", command=self._on_exit)
         
         # Help menu
-        help_menu = tk.Menu(menubar, tearoff=0)
+        help_menu = tk.Menu(menubar, tearoff=0, bg=COLOR_DARK_HEADER, fg=COLOR_TEXT_LIGHT, activebackground=COLOR_DARK_HEADER, activeforeground=COLOR_TEXT_LIGHT)
         menubar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="About", command=self._on_about)
     
     def _create_panels(self) -> None:
         """Create the three-panel layout"""
         # Main container with vertical layout
-        main_container = ttk.Frame(self.root, padding="10")
+        main_container = ttk.Frame(self.root, padding="10", style="Light.TFrame")
         main_container.pack(fill=tk.BOTH, expand=True)
         
         # Excel panel (top) - for importing and selecting Excel data
-        self.excel_panel = ttk.LabelFrame(main_container, text="Excel Data Source", padding="10")
+        self.excel_panel = ttk.LabelFrame(main_container, text="Excel Data Source", padding="10", style="Styled.TLabelframe")
         self.excel_panel.pack(fill=tk.X, pady=(0, 10))
         
         # Placeholder content for Excel panel
@@ -61,11 +62,11 @@ class App:
         excel_content.pack(fill=tk.X)
         
         ttk.Label(excel_content, text="Import Excel file to begin").pack(side=tk.LEFT, padx=5)
-        self.import_excel_btn = ttk.Button(excel_content, text="Import Excel", command=self._on_import_excel)
+        self.import_excel_btn = ttk.Button(excel_content, text="Import Excel", command=self._on_import_excel, style="Custom.TButton")
         self.import_excel_btn.pack(side=tk.LEFT, padx=5)
         
         # Workflow panel (center) - for building and managing steps
-        self.workflow_panel = ttk.LabelFrame(main_container, text="Workflow Steps", padding="10")
+        self.workflow_panel = ttk.LabelFrame(main_container, text="Workflow Steps", padding="10", style="Styled.TLabelframe")
         self.workflow_panel.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
         # Placeholder content for Workflow panel
@@ -73,11 +74,11 @@ class App:
         workflow_content.pack(fill=tk.BOTH, expand=True)
         
         ttk.Label(workflow_content, text="No steps added yet").pack(pady=20)
-        self.add_step_btn = ttk.Button(workflow_content, text="Add Step", command=self._on_add_step)
+        self.add_step_btn = ttk.Button(workflow_content, text="Add Step", command=self._on_add_step, style="Custom.TButton")
         self.add_step_btn.pack(pady=5)
         
         # Execution panel (bottom) - for starting/stopping execution
-        self.execution_panel = ttk.LabelFrame(main_container, text="Execution", padding="10")
+        self.execution_panel = ttk.LabelFrame(main_container, text="Execution", padding="10", style="Styled.TLabelframe")
         self.execution_panel.pack(fill=tk.X)
         
         # Placeholder content for Execution panel
@@ -93,10 +94,10 @@ class App:
         self.dry_run_chk = ttk.Checkbutton(execution_content, text="Dry Run", variable=self.dry_run_var)
         self.dry_run_chk.pack(side=tk.LEFT, padx=10)
         
-        self.start_btn = ttk.Button(execution_content, text="Start", command=self._on_start)
+        self.start_btn = ttk.Button(execution_content, text="Start", command=self._on_start, style="Custom.TButton")
         self.start_btn.pack(side=tk.LEFT, padx=5)
         
-        self.stop_btn = ttk.Button(execution_content, text="Stop", command=self._on_stop, state=tk.DISABLED)
+        self.stop_btn = ttk.Button(execution_content, text="Stop", command=self._on_stop, state=tk.DISABLED, style="Custom.TButton")
         self.stop_btn.pack(side=tk.LEFT, padx=5)
         
         self.progress_label = ttk.Label(execution_content, text="Ready")
